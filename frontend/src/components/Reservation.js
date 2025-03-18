@@ -66,6 +66,7 @@ const ReservationModal = ({ product, onClose }) => {
         })
       });
       
+      
       const responseData = await response.json();
 
       if (responseData.success) {
