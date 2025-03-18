@@ -11,6 +11,8 @@ import CategeoryProduct from '../pages/CategeoryProduct'
 import ProductDetails from '../pages/ProductDetails'
 import SellerProduct from '../pages/sellerproduct'
 import Shopdetails from '../pages/shopdetails'
+import UserProduct from '../pages/UserProduct'
+import ViewProductFull from '../pages/ViewProductFull'
 const router = createBrowserRouter([
  {
      path:"/",
@@ -64,6 +66,14 @@ const router = createBrowserRouter([
              {
                 path:"shop-details",
                 element:<Shopdetails/>
+             },
+             {
+                path:"user-product",
+                element:<UserProduct/>
+             },
+             {
+                path:"view-product/:id",
+                element:<ViewProductFull/>
              }
             
             

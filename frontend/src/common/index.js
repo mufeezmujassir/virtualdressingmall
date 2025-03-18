@@ -83,6 +83,10 @@ const SummaryApi = {
         url: `${backendDomin}/api/delete-product`,
         method: 'POST'
     },
+    addReservation : {
+        url : `${backendDomin}/api/add-reservation`,
+        method : 'POST'
+    }
 }
 
 export default SummaryApi  

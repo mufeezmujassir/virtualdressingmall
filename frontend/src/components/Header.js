@@ -90,7 +90,7 @@ const Header = () => {
           <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-[#E54040] md:mt-0 md:border-0">
             <li><Link to={"/"} className="block py-2 px-3 text-white hover:text-black">Home</Link></li>
             <li><Link to={"/shop-details"} className="block py-2 px-3 text-white hover:text-black">Shops</Link></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Products</a></li>
+            <li><Link to={'/user-product'} className="block py-2 px-3 text-white hover:text-black">Products</Link></li>
             <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Bid</a></li>
             
           </ul>

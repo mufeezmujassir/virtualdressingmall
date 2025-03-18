@@ -15,6 +15,10 @@ const getCategoryProduct = require('../controller/product/getCategoryProductOne'
 const getCategoryWiseProduct = require('../controller/product/getCategoryWiseProduct');
 const getproductDetails = require('../controller/product/getProductDetails');
 const deleteProductController = require('../controller/product/deleteProduct');
+const addReservation = require('../controller/reservation/addreservation');
+
+
+
 
 router.post("/Signup", userSignUpController);
 router.post("/signin", userSigninController);
@@ -33,4 +37,9 @@ router.get("/get-categoryProduct", getCategoryProduct);
 router.post("/category-product", getCategoryWiseProduct);
 router.post("/product-details", getproductDetails);
 router.post("/delete-product", deleteProductController);
+
+
+
+//reservation
+router.post("/add-reservation",authToken,addReservation);
 module.exports = router;

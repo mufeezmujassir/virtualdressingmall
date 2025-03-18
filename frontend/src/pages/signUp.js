@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
-import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
-import loginIcons from '../assest/signin.gif';
-import imageTobase64 from '../helpers/imageTobase65';
-import SummaryApi from '../common/index';
-import { toast } from 'react-toastify';
-
+import React, { useState, useRef } from "react";
+import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle, FaMapMarkerAlt } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import Modal from "react-modal";
+import loginIcons from "../assest/signin.gif";
+import imageTobase64 from "../helpers/imageTobase65";
+import SummaryApi from "../common/index";
+import { toast } from "react-toastify";
+import L from "leaflet";
+// Fix Leaflet icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+});
 const SignUp = () => {
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [location, setLocation] = useState({ lat: 6.9271, lng: 79.8612, address: "" }); // Default to Colombo, Sri Lanka
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
@@ -18,8 +29,10 @@ const SignUp = () => {
     confirmPassword: '',
     profilePic: '',
     role: '',
+    address:''
   });
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();
   data.role=isSeller?'SELLER':'GENERAL';
   const handleOnChange = (event) => {
@@ -80,6 +93,41 @@ const SignUp = () => {
     role: role, // Set role correctly
   }));
 };
+// Location search function
+const handleSearchLocation = async () => {
+  if (!searchQuery) return;
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}`
+    );
+    const results = await response.json();
+    setSearchResults(results);
+  } catch (error) {
+    console.error("Error searching location:", error);
+  }
+};
+
+// Modal for selecting location
+const handleLocationSelect = (result) => {
+  setLocation({ lat: result.lat, lng: result.lon, address: result.display_name });
+  setModalIsOpen(false);
+};
+
+function LocationMarker() {
+  useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const address = data.display_name || `${lat}, ${lng}`;
+          setLocation({ lat, lng, address });
+        });
+    },
+  });
+  return location ? <Marker position={[location.lat, location.lng]} /> : null;
+}
+
 
 
   return (
@@ -144,6 +192,17 @@ const SignUp = () => {
               className="p-2 border rounded-md focus:ring focus:ring-blue-300"
             />
           </div>
+        <div className="grid">
+          <label className="font-semibold">Location:</label>
+          <button
+            type="button"
+            onClick={() => setModalIsOpen(true)}
+            className="flex items-center gap-2 p-2 border rounded-md bg-gray-200 text-gray-700"
+          >
+            <FaMapMarkerAlt /> {location.address || "Choose your location"}
+          </button>
+        </div>
+
 
           <div className="grid">
             <label className="font-semibold">Password:</label>
@@ -201,6 +260,82 @@ const SignUp = () => {
             )}
 
           </div>
+<Modal
+  isOpen={modalIsOpen}
+  onRequestClose={() => setModalIsOpen(false)}
+  className="modal w-full max-w-md mx-auto bg-white p-4 rounded-lg relative"
+  overlayClassName="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center"
+>
+  {/* Close Button */}
+  <button
+    onClick={() => setModalIsOpen(false)}
+    className="absolute top-2 right-2 text-black text-2xl"
+  >
+    &times;
+  </button>
+
+  <div className="flex flex-col gap-4 h-full">
+    {/* Search Bar */}
+    <input
+      type="text"
+      placeholder="Search location"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="w-full p-2 border mb-2"
+    />
+
+    {/* Display Search Button only if there is a query */}
+    {searchQuery && (
+      <button
+        onClick={handleSearchLocation}
+        className="bg-blue-500 text-white px-3 py-1 rounded mb-2"
+      >
+        Search
+      </button>
+    )}
+
+    {/* Scrollable Search Results */}
+    <div className="overflow-y-auto flex-grow max-h-60 mb-4">
+      <ul>
+        {searchResults.map((result, index) => (
+          <li
+            key={index}
+            onClick={() => handleLocationSelect(result)}
+            className="cursor-pointer p-2 border-b hover:bg-gray-200"
+          >
+            {result.display_name}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    {/* Map Container */}
+    <div className="h-60 mb-4">
+      <MapContainer
+        center={[location.lat, location.lng]}
+        zoom={13}
+        style={{ height: "100%", width: "100%" }}
+        className="mt-4"
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <LocationMarker />
+      </MapContainer>
+    </div>
+
+    {/* Confirm Button */}
+    <div className="flex justify-end mt-4">
+      <button
+        onClick={() => setModalIsOpen(false)}
+        className="bg-red-500 text-white px-4 py-2 rounded"
+      >
+        Confirm
+      </button>
+    </div>
+  </div>
+</Modal>
+
+
+
 
           <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full hover:scale-105 transition-all w-full mt-4">
             {isSeller ? 'Register Shop' : 'Sign Up'}
