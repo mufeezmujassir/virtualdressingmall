@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react'
-import loginIcons from '../assest/signin.gif'
+
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from 'react-router-dom';
@@ -28,98 +28,77 @@ const Login = () => {
     }
 
 
-    const handleSubmit = async(e) =>{
-        e.preventDefault()
-
-        const dataResponse = await fetch(SummaryApi.signIn.url,{
-            method : SummaryApi.signIn.method,
-            credentials : 'include',
-            headers : {
-                "content-type" : "application/json"
-            },
-            body : JSON.stringify(data)
-        })
-
-        const dataApi = await dataResponse.json()
-
-        if(dataApi.success){
-            toast.success(dataApi.message)
-            navigate('/')
-            fetchUserDetails()
-            fetchUserAddToCart()
-        }
-
-        if(dataApi.error){
-            toast.error(dataApi.message)
-        }
-
-    }
-
-    console.log("data login",data)
+    const handleSubmit = async (e) => {
+        e.preventDefault();
     
-  return (
-    <section id='login'>
-        <div className='mx-auto container p-4'>
+        try {
+            const dataResponse = await fetch(SummaryApi.signIn.url, {
+                method: SummaryApi.signIn.method,
+                credentials: 'include',
+                headers: {
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+    
+            if (!dataResponse.ok) {
+                throw new Error(`HTTP error! status: ${dataResponse.status}`);
+            }
+    
+            const dataApi = await dataResponse.json();
+    
+            if (dataApi.success) {
+                toast.success(dataApi.message);
+                navigate('/');
+                fetchUserDetails();
+                fetchUserAddToCart();
+            } else if (dataApi.error) {
+                toast.error(dataApi.message);
+            }
+        } catch (error) {
+            console.error("Error during fetch:", error);
+            toast.error("Failed to login. Please try again later.");
+        }
+    };
+    console.log("data login",data)
 
-            <div className='bg-white p-5 w-full max-w-sm mx-auto'>
-                    <div className='w-20 h-20 mx-auto'>
-                        <img src={loginIcons} alt='login icons'/>
-                    </div>
-
-                    <form className='pt-6 flex flex-col gap-2' onSubmit={handleSubmit}>
-                        <div className='grid'>
-                            <label>Email : </label>
-                            <div className='bg-slate-100 p-2'>
-                                <input 
-                                    type='email' 
-                                    placeholder='enter email' 
-                                    name='email'
-                                    value={data.email}
-                                    onChange={handleOnChange}
-                                    className='w-full h-full outline-none bg-transparent'/>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label>Password : </label>
-                            <div className='bg-slate-100 p-2 flex'>
-                                <input 
-                                    type={showPassword ? "text" : "password"} 
-                                    placeholder='enter password'
-                                    value={data.password}
-                                    name='password' 
-                                    onChange={handleOnChange}
-                                    className='w-full h-full outline-none bg-transparent'/>
-                                <div className='cursor-pointer text-xl' onClick={()=>setShowPassword((preve)=>!preve)}>
-                                    <span>
-                                        {
-                                            showPassword ? (
-                                                <FaEyeSlash/>
-                                            )
-                                            :
-                                            (
-                                                <FaEye/>
-                                            )
-                                        }
-                                    </span>
-                                </div>
-                            </div>
-                            <Link to={'/forgot-password'} className='block w-fit ml-auto hover:underline hover:text-red-600'>
-                                Forgot password ?
-                            </Link>
-                        </div>
-
-                        <button className='bg-red-600 hover:bg-red-700 text-white px-6 py-2 w-full max-w-[150px] rounded-full hover:scale-110 transition-all mx-auto block mt-6'>Login</button>
-
-                    </form>
-
-                    <p className='my-5'>Don't have account ? <Link to={"/sign-up"} className=' text-red-600 hover:text-red-700 hover:underline'>Sign up</Link></p>
+    return (
+        <div className="login-page-container">
+            <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'/>
+            <div className="left-panel">
+                <h1>Hello, Welcome!</h1>
+                <p>Don't have an account?</p>
+                <Link to="/sign-up">
+                    <button className="register-btn">Register</button>
+                </Link>
             </div>
-
-
+            <div className="right-panel">
+                <form onSubmit={handleSubmit} className="login-form">
+                    <h2>Login</h2>
+                    <div className="input-group">
+                        <input type="email" name="email" placeholder="Email" value={data.email} onChange={handleOnChange}  />
+                    </div>
+                    <div className="input-group">
+                        <input type={showPassword ? "text" : "password"} name="password" placeholder="Password" value={data.password} onChange={handleOnChange}  />
+                        <span onClick={() => setShowPassword(!showPassword)}>
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </span>
+                    </div>
+                    <button  className="login-btn">Login</button>
+                    <div className="forgot-password">
+                        <Link to="/forgot-password">Forgot password?</Link>
+                    </div>
+                    <p>or login with social platforms</p>
+                    <div className="social-icons">
+                        <a href="#"><i className='bx bxl-google'></i></a>
+                        <a href="#"><i className='bx bxl-facebook'></i></a>
+                        <a href="#"><i className='bx bxl-github'></i></a>
+                        <a href="#"><i className='bx bxl-linkedin'></i></a>
+                    </div>
+                </form>
+            </div>
         </div>
-    </section>
-  )
-}
+    );
+};
 
-export default Login
+export default Login;
