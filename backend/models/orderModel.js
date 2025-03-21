@@ -1,10 +1,7 @@
-const mongoose = require('mongoose')
+const mongoose =require('mongoose')
 
-const reservationSchema=new mongoose.Schema({
-    ReservationID:{
-        type:String, 
-        required:true
-    },
+const orderSchema=new mongoose.Schema({
+
     productID:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"product"
@@ -13,20 +10,29 @@ const reservationSchema=new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
     },
-    size:{
+    TotalAmount:{
+        type:Number,
+        required:true
+    },
+    Address:{
         type:String,
         required:true
     },
     Quantity:{
         type:Number,
-        required:true   
+        required:true
     },
-    ValidateReservation:{
+    Size:{
         type:String,
+        required:true
     },
-    ReservationDate:{
+    Status:{
+        type:String,
+        default:"pending"
+    },
+    OrderDate:{
         type:Date,
-        default: () => {
+       default: () => {
             const today = new Date();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
@@ -34,9 +40,7 @@ const reservationSchema=new mongoose.Schema({
             return `${month}/${day}/${year}`;
         }
     }
-},{
-    timestamps:true
 })
-const resrvationModel=mongoose.model("Reservation",reservationSchema)
 
-module.exports=resrvationModel;
+const orderModel=mongoose.model("Order",orderSchema)
+module.exports=orderModel

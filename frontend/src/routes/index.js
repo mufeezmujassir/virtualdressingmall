@@ -13,6 +13,8 @@ import SellerProduct from '../pages/sellerproduct'
 import Shopdetails from '../pages/shopdetails'
 import UserProduct from '../pages/UserProduct'
 import ViewProductFull from '../pages/ViewProductFull'
+import AddtoCart from '../components/AddtoCart'
+import SellerDashboard from '../pages/Dashboard'
 const router = createBrowserRouter([
  {
      path:"/",
@@ -74,6 +76,13 @@ const router = createBrowserRouter([
              {
                 path:"view-product/:id",
                 element:<ViewProductFull/>
+             },{
+                path:"add-to-cart",
+                element:<AddtoCart/>
+             },
+             {
+                path:"seller-dashboard",
+                element:<SellerDashboard/>
              }
             
             

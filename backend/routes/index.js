@@ -16,7 +16,7 @@ const getCategoryWiseProduct = require('../controller/product/getCategoryWisePro
 const getproductDetails = require('../controller/product/getProductDetails');
 const deleteProductController = require('../controller/product/deleteProduct');
 const addReservation = require('../controller/reservation/addreservation');
-
+const getSellerProduct=require('../controller/product/getSellerProduct');
 
 
 
@@ -37,7 +37,7 @@ router.get("/get-categoryProduct", getCategoryProduct);
 router.post("/category-product", getCategoryWiseProduct);
 router.post("/product-details", getproductDetails);
 router.post("/delete-product", deleteProductController);
-
+router.get("/all-product-seller", getSellerProduct);
 
 
 //reservation

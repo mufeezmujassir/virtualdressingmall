@@ -100,33 +100,20 @@ const Header = () => {
     </nav>)
     }
     else if(user?.role===role.SELLER){
-      return(<nav className="bg-[#E54040] border-gray-200">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
-        
-        
-
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="block md:hidden text-white focus:outline-none"
-        >
-          ☰
-        </button>
-
-        {/* Navigation Links */}
-        <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
-          <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-[#E54040] md:mt-0 md:border-0">
-            <li><Link to={"/"} className="block py-2 px-3 text-white hover:text-black">Dashboard</Link></li>
-            <li><Link to={"/shop-product"}  className="block py-2 px-3 text-white hover:text-black"> Products</Link></li>
-            <li><Link to={"/"} className="block py-2 px-3 text-white hover:text-black">Put a Bid</Link></li>
-            <li><Link to={"/"} className="block py-2 px-3 text-white hover:text-black">Orders</Link></li>
-            <li><Link to={"/"} className="block py-2 px-3 text-white hover:text-black">Reservation</Link></li>
-            <li><Link to={"/"} className="block py-2 px-3 text-white hover:text-black">Chat</Link></li>
-          </ul>
-        </div>
-
-      </div>
-    </nav>
+      return(
+      <div className="w-64 h-screen p-4 bg-red-500 text-white flex flex-col gap-4">
+    <h2 className="text-2xl font-bold mb-4">Seller Panel</h2>
+    <Link to="/seller-dashboard" className="hover:bg-red-800 p-2 rounded">Dashboard</Link>
+     <Link to="/shop-product" className="hover:bg-red-800 p-2 rounded">Products</Link>
+     <Link to="/reviews" className="hover:bg-red-800 p-2 rounded">Orders</Link>
+     <Link to="/reservations" className="hover:bg-red-800 p-2 rounded">Reservation Products</Link>
+    <Link to="/bid-products" className="hover:bg-red-800 p-2 rounded">Put a Bid Products</Link>
+    <Link to="/reviews" className="hover:bg-red-800 p-2 rounded">Reviews</Link>
+    
+    
+   
+  </div>
+    
 
 )
     }
@@ -187,12 +174,14 @@ const Header = () => {
 
           {/* Shopping Cart */}
           <div className='text-2xl relative'>
-            <span>
-              <FaShoppingCart />
-            </span>
-            <div className='bg-red-600 text-white w-5 h-5 rounded-full p-1 flex items-center justify-center absolute top-0 -right-3'>
-              <p className='text-sm'>0</p>
-            </div>
+            <Link to={'/add-to-cart'}>
+              <span>
+                <FaShoppingCart />
+              </span>
+              <div className='bg-red-600 text-white w-5 h-5 rounded-full p-1 flex items-center justify-center absolute top-0 -right-3'>
+                <p className='text-sm'>0</p>
+              </div>
+            </Link>
           </div>
 
           {/* Login Button */}
