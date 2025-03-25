@@ -90,6 +90,18 @@ const SummaryApi = {
     addReservation : {
         url : `${backendDomin}/api/add-reservation`,
         method : 'POST'
+    },
+    getReservationDetails : {
+        url : `${backendDomin}/api/get-reservation`,
+        method : 'get'
+    },
+    updatereservation:{
+        url:`${backendDomin}/api/update-reservation`,
+        method : 'POST'
+    },
+    getgroupbyDetails:{
+        url:`${backendDomin}/api/get-groupby-reservation`,
+        method : 'get'
     }
 }
 

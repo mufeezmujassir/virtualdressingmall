@@ -17,9 +17,9 @@ const getproductDetails = require('../controller/product/getProductDetails');
 const deleteProductController = require('../controller/product/deleteProduct');
 const addReservation = require('../controller/reservation/addreservation');
 const getSellerProduct=require('../controller/product/getSellerProduct');
-
-
-
+const getReservationDetails=require('../controller/reservation/getreservation')
+const updatereservation = require('../controller/reservation/updateReservation');
+const getGroupbyReservation =require('../controller/reservation/getGroupbyDetails')
 router.post("/Signup", userSignUpController);
 router.post("/signin", userSigninController);
 router.get("/user-details", authToken, userDetailsController);
@@ -42,4 +42,7 @@ router.get("/all-product-seller", getSellerProduct);
 
 //reservation
 router.post("/add-reservation",authToken,addReservation);
+router.get("/get-reservation",getReservationDetails);
+router.post("/update-reservation",updatereservation);
+router.get("/get-groupby-reservation",getGroupbyReservation);
 module.exports = router;
