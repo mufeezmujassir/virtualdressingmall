@@ -155,7 +155,7 @@ const ReservationModal = ({ product, onClose }) => {
     doc.text(`${quantity * price}`, 180, 145);
 
     // Add subtotal, tax, and total
-    const total = availableQty * price;
+    const total = quantity * price;
 
     doc.setFontSize(14);
     doc.text("Total", 20, 195);

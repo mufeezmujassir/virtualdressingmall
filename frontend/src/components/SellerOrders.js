@@ -3,11 +3,17 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import SummaryApi from '../common';
 import { Switch } from '@mui/material';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+// Register chart components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const SellerOrderView = () => {
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dailyIncomeData, setDailyIncomeData] = useState({});
   const user = useSelector((state) => state?.user?.user);
 
   useEffect(() => {
@@ -22,6 +28,7 @@ const SellerOrderView = () => {
           );
           setOrders(sellerOrders);
           setFilteredOrders(sellerOrders);
+          calculateDailyIncome(sellerOrders);
         } else {
           console.error('Unexpected data format:', dataResponse);
         }
@@ -33,6 +40,39 @@ const SellerOrderView = () => {
     };
     fetchOrders();
   }, [user?._id]);
+
+  const calculateDailyIncome = (orders) => {
+    const dailyIncome = {};
+
+    orders.forEach((order) => {
+      const orderDate = new Date(order.createdAt).toLocaleDateString();
+      const income = order.TotalAmount;
+
+      if(order.Status==='Confirmed'){
+        if (dailyIncome[orderDate]) {
+          dailyIncome[orderDate] += income;
+        } else {
+          dailyIncome[orderDate] = income
+      } }
+        
+  });
+
+    const dates = Object.keys(dailyIncome);
+    const incomes = Object.values(dailyIncome);
+
+    setDailyIncomeData({
+      labels: dates,
+      datasets: [
+        {
+          label: 'Daily Income',
+          data: incomes,
+          fill: false,
+          borderColor: 'rgb(75, 192, 192)',
+          tension: 0.1,
+        },
+      ],
+    });
+  };
 
   const handleStatusChange = async (orderID, newStatus) => {
     try {
@@ -89,6 +129,23 @@ const SellerOrderView = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
+      {/* Line plot graph for daily income */}
+      <div className="mb-6">
+      <h2 className="text-2xl font-bold mb-4">Daily Income</h2>
+      <div className="bg-white shadow-md rounded-lg p-4 h-72"> {/* Tailwind class for height */}
+        <Line
+          data={dailyIncomeData}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false, // Ensures that the chart doesn't maintain its aspect ratio
+          }}
+          style={{ height: '100%' }} // This ensures the chart takes full height of the container
+        />
+      </div>
+    </div>
+
+
+      {/* Order filter and search bar */}
       <div className="flex items-center mb-6">
         <h3 className="mr-4">View</h3>
         <select
@@ -97,7 +154,7 @@ const SellerOrderView = () => {
         >
           <option value="All Orders">All Orders</option>
           <option value="Confirmed">Confirmed Orders</option>
-          <option value="Pending">Pending Orders</option>
+          <option value="pending">Pending Orders</option>
         </select>
         <input
           type="text"
@@ -106,8 +163,10 @@ const SellerOrderView = () => {
           className="px-4 py-2 border border-gray-300 rounded-md ml-4 w-1/3"
         />
       </div>
+
       <h2 className="text-2xl font-bold mb-6">Order Details</h2>
 
+      {/* Order Table */}
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
         <table className="min-w-full table-auto border-collapse">
           <thead>
