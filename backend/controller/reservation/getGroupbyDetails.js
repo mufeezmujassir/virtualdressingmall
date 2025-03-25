@@ -24,5 +24,5 @@ const getReservationDetails = async (req, res) => {
         });
     }
 };
-
+ 
 module.exports = getReservationDetails;

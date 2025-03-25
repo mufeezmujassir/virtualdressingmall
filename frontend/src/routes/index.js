@@ -17,6 +17,7 @@ import AddtoCart from '../components/AddtoCart'
 import SellerDashboard from '../pages/SellerPanel'
 import Overview from '../components/Overview'
 import SellerReservation from '../components/SellerReservationProduct'
+import SellerOrders from '../components/SellerOrders'
 const router = createBrowserRouter([
  {
      path:"/",
@@ -93,6 +94,9 @@ const router = createBrowserRouter([
                     },{
                         path:"reservation",
                         element:<SellerReservation/>
+                    },{
+                        path:"seller-order",
+                        element:<SellerOrders/>
                     }
 
                 ]

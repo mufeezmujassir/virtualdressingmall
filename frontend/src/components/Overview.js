@@ -159,13 +159,13 @@ const OverviewOrder = () => {
         <div className="text-xl font-semibold mb-2">Product Overview</div>
         <div className="flex gap-6">
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <p><strong>Total Products in System:</strong> {productsCount}</p>
+            <p><strong>Total Products you are enter:</strong> {productsCount}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <p><strong>Confirmed Orders:</strong> {confirmedOrders}</p>
+            <p><strong>Out of Stocks </strong> {confirmedOrders}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <p><strong>Pending Orders:</strong> {pendingOrders}</p>
+            <p><strong>Available Stocks</strong> {pendingOrders}</p>
           </div>
         </div>
       </div>

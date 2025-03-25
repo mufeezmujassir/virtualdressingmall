@@ -40,6 +40,9 @@ const orderSchema=new mongoose.Schema({
             return `${month}/${day}/${year}`;
         }
     }
+},
+{
+    timestamps:true
 })
 
 const orderModel=mongoose.model("Order",orderSchema)

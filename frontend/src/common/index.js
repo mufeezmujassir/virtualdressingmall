@@ -102,6 +102,14 @@ const SummaryApi = {
     getgroupbyDetails:{
         url:`${backendDomin}/api/get-groupby-reservation`,
         method : 'get'
+    },
+    getOrderDetails:{
+        url:`${backendDomin}/api/get-orders`,
+        method : 'get'
+    },
+    updateOrderStatus:{
+        url:`${backendDomin}/api/update-order-status`,
+        method : 'POST'
     }
 }
 
