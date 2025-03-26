@@ -20,6 +20,10 @@ const Header = () => {
   const [menuDisplay, setMenuDisplay] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { cartProductCount } = useContext(AppContext);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   
   useEffect(() => {
     console.log('Header mounted - Current user:', user);
@@ -36,121 +40,219 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.get(SummaryApi.logout_user.url, {
-        withCredentials: true,
-        headers: token ? {
-          'Authorization': `Bearer ${token}`
-        } : undefined
-      });
+      await fetch(SummaryApi.logout_user.url);
+      dispatch(clearUserDetails());
+      toast.success('Logged out successfully');
 
-      if (response.data.success) {
-        dispatch(clearUserDetails());
-        toast.success('Logged out successfully');
-        navigate('/login', { replace: true });
-      } else {
-        toast.error(response.data.message || 'Logout failed');
-      }
+      // Clear axios auth headers
+      delete axios.defaults.headers.common['Authorization'];
+      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      // If we get a 401 or any other error, clear the user state anyway
-      dispatch(clearUserDetails());
-      toast.error('Session ended. Please login again.');
-      navigate('/login', { replace: true });
+      toast.error('Failed to logout. Please try again.');
     }
   };
 
   const navigation=()=>{
-    if(user?.role===role.ADMIN){
-      return(<nav className="bg-[#E54040] border-gray-200">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
-        
-        
+    if(user?.role === role.SELLER){
+      return (
+        <nav className="bg-red-600 border-gray-200">
+          <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="block md:hidden text-white focus:outline-none"
+            >
+              ☰
+            </button>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="block md:hidden text-white focus:outline-none"
-        >
-          ☰
-        </button>
-
-        {/* Navigation Links */}
-        <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
-          <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-[#E54040] md:mt-0 md:border-0">
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Dashboard</a></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Products</a></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">User</a></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Orders</a></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Analytics & Reports</a></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Feedback</a></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Settings</a></li>
-          </ul>
-        </div>
-
-      </div>
-    </nav>
-
-)
-    }
-     else if(user?.role===role.USER){
-      return(<nav className="bg-[#E54040] border-gray-200">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
-        
-        
-
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="block md:hidden text-white focus:outline-none"
-        >
-          ☰
-        </button>
-
-        {/* Navigation Links */}
-        <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
-          <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-[#E54040] md:mt-0 md:border-0">
-            <li><Link to={"/"} className="block py-2 px-3 text-white hover:text-black">Home</Link></li>
-            <li><Link to={"/shop-details"} className="block py-2 px-3 text-white hover:text-black">Shops</Link></li>
-            <li><Link to={'/user-product'} className="block py-2 px-3 text-white hover:text-black">Products</Link></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Bid</a></li>
-            
-          </ul>
-        </div>
-
-      </div>
-    </nav>)
-    }
-    else if(user?.role===role.SELLER){
+            {/* Navigation Links */}
+            <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
+              <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-red-600 md:mt-0 md:border-0">
+                <li>
+                  <Link to="/user-product" className="block py-2 px-3 text-white hover:text-black">
+                    Product
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/shop-product" className="block py-2 px-3 text-white hover:text-black">
+                    Shop
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      )
+    }else if(user?.role === role.ADMIN){
       return(
-        <nav className="bg-[#E54040] border-gray-200">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
-        
-        
+        <nav className="bg-red-600 border-gray-200">
+          <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="block md:hidden text-white focus:outline-none"
+            >
+              ☰
+            </button>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="block md:hidden text-white focus:outline-none"
-        >
-          ☰
-        </button>
+            {/* Navigation Links */}
+            <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
+              <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-red-600 md:mt-0 md:border-0">
+                <li>
+                  <Link to="/admin-panel/all-users" className="block py-2 px-3 text-white hover:text-black">
+                    Users
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/admin-panel/all-products" className="block py-2 px-3 text-white hover:text-black">
+                    Products
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      )
+    }else if(user?.role === role.USER){
+      return(
+        <nav className="bg-red-600 border-gray-200">
+          <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="block md:hidden text-white focus:outline-none"
+            >
+              ☰
+            </button>
 
-        {/* Navigation Links */}
-        <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
-          <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-[#E54040] md:mt-0 md:border-0">
-            <li><Link to={"/seller-dashboard"} className="block py-2 px-3 text-white hover:text-black">Home</Link></li>
-            
-          </ul>
-        </div>
+            {/* Navigation Links */}
+            <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
+              <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-red-600 md:mt-0 md:border-0">
+                <li>
+                  <Link to="/" className="block py-2 px-3 text-white hover:text-black">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/user-product" className="block py-2 px-3 text-white hover:text-black">
+                    Products
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/shop-details" className="block py-2 px-3 text-white hover:text-black">
+                    Shops
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/bid" className="block py-2 px-3 text-white hover:text-black">
+                    Bid
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      )
+    } else {
+      return(
+        <nav className="bg-red-600 border-gray-200">
+          <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="block md:hidden text-white focus:outline-none"
+            >
+              ☰
+            </button>
 
-      </div>
-    </nav>
-      
-    
-
-)
+            {/* Navigation Links */}
+            <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
+              <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-red-600 md:mt-0 md:border-0">
+                <li>
+                  <Link to="/" className="block py-2 px-3 text-white hover:text-black">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/user-product" className="block py-2 px-3 text-white hover:text-black">
+                    Products
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/shop-details" className="block py-2 px-3 text-white hover:text-black">
+                    Shops
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      )
     }
   }
+
+  // Handle search query changes
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    
+    if (query.trim().length > 1) {
+      handleSearch(query);
+    } else {
+      setSearchResults([]);
+      setShowResults(false);
+    }
+  };
+
+  // Perform search
+  const handleSearch = async (query) => {
+    if (!query.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const response = await fetch(`${SummaryApi.searchProduct.url}${encodeURIComponent(query)}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setSearchResults(data.data.slice(0, 5)); // Limit to 5 results for dropdown
+        setShowResults(true);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Handle search form submission
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setShowResults(false);
+    }
+  };
+
+  // Handle clicking on a search result
+  const handleResultClick = (productId) => {
+    navigate(`/view-product/${productId}`);
+    setShowResults(false);
+    setSearchResults([]);
+  };
+
+  // Close search results if clicked outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowResults(false);
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
   
   return (
     <header className='h-16 shadow-md bg-white fixed w-full z-40'>
@@ -159,15 +261,79 @@ const Header = () => {
           <Logo w={90} h={50} />
         </Link>
 
-        <div className='flex items-center w-full justify-between max-w-sm border rounded-full focus-within:shadow'>
-          <input
-            type='text'
-            placeholder='Search product here...'
-            className='w-full outline-none pl-2'
-          />
-          <div className='text-lg min-w-[50px] h-8 bg-red-600 flex items-center justify-center rounded-r-full text-white'>
-            <GrSearch />
-          </div>
+        <div 
+          className='relative flex items-center w-full justify-between max-w-sm'
+          onClick={(e) => e.stopPropagation()}
+        >
+          <form 
+            onSubmit={handleSearchSubmit}
+            className='w-full flex'
+          >
+            <input
+              type='text'
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder='Search products...'
+              className='w-full outline-none pl-4 py-2 border border-gray-300 rounded-l-full focus:border-red-500 focus:ring-1 focus:ring-red-500'
+            />
+            <button 
+              type="submit"
+              className='text-lg min-w-[50px] h-[42px] bg-red-600 flex items-center justify-center rounded-r-full text-white hover:bg-red-700 transition-colors'
+            >
+              <GrSearch className="filter invert" />
+            </button>
+          </form>
+          
+          {/* Search Results Dropdown */}
+          {showResults && searchResults.length > 0 && (
+            <div className='absolute top-full left-0 right-0 mt-1 bg-white shadow-lg rounded-md z-50 max-h-80 overflow-y-auto'>
+              {searchResults.map((product) => (
+                <div
+                  key={product._id}
+                  className='p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 flex items-center gap-3'
+                  onClick={() => handleResultClick(product._id)}
+                >
+                  {product.productImage && product.productImage[0] && (
+                    <img 
+                      src={product.productImage[0]} 
+                      alt={product.productName} 
+                      className='w-12 h-12 object-cover rounded-md'
+                    />
+                  )}
+                  <div>
+                    <h3 className='font-medium'>{product.productName}</h3>
+                    <p className='text-sm text-gray-500'>{product.category}</p>
+                  </div>
+                </div>
+              ))}
+              <div className='p-2 text-center border-t'>
+                <button 
+                  onClick={handleSearchSubmit}
+                  className='text-red-600 hover:text-red-800 text-sm font-medium'
+                >
+                  View all results
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* "No results" message when search is performed but no results found */}
+          {showResults && searchQuery.trim().length > 1 && searchResults.length === 0 && !isSearching && (
+            <div className='absolute top-full left-0 right-0 mt-1 bg-white shadow-lg rounded-md z-50 p-4 text-center'>
+              <p className='text-gray-500'>No products found matching "{searchQuery}"</p>
+            </div>
+          )}
+          
+          {/* Loading indicator */}
+          {isSearching && (
+            <div className='absolute top-full left-0 right-0 mt-1 bg-white shadow-lg rounded-md z-50 p-4 text-center'>
+              <div className='animate-pulse flex justify-center'>
+                <div className='h-4 w-4 bg-red-600 rounded-full mr-1'></div>
+                <div className='h-4 w-4 bg-red-600 rounded-full mr-1 animation-delay-200'></div>
+                <div className='h-4 w-4 bg-red-600 rounded-full animation-delay-400'></div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className='flex items-center gap-20'>
