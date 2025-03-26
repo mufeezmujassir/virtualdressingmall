@@ -9,6 +9,7 @@ const getReservationDetails = async (req, res) => {
                 }
             }
         ]);
+        
 
         res.json({
             message: "Reservation details by status",

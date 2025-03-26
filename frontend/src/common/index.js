@@ -111,6 +111,12 @@ const SummaryApi = {
         url:`${backendDomin}/api/update-order-status`,
         method : 'POST'
     }
+    ,
+    generateBalanceSheet : {
+        url : `${backendDomin}/api/generate-balance-sheet`,
+        method : 'get'
+    }
+    
 }
 
 export default SummaryApi  

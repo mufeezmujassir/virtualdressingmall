@@ -26,7 +26,7 @@ const SellerPanel = () => {
     { path: 'reservation', label: 'Reservations' },
     {path: 'seller-order', label: 'Orders'},
     {path:'hello',label:'Put a Bid'},
-    {path:'reports',label:'Analaytics'},
+    {path:'generate-balance',label:'Analaytics'},
     {path:'review',label:'Review'}
   ];
 

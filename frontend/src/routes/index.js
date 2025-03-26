@@ -18,6 +18,7 @@ import SellerDashboard from '../pages/SellerPanel'
 import Overview from '../components/Overview'
 import SellerReservation from '../components/SellerReservationProduct'
 import SellerOrders from '../components/SellerOrders'
+import GenerateBalance from '../components/generateBalancesheet'
 const router = createBrowserRouter([
  {
      path:"/",
@@ -97,6 +98,10 @@ const router = createBrowserRouter([
                     },{
                         path:"seller-order",
                         element:<SellerOrders/>
+                    },
+                    {
+                        path:"generate-balance",
+                        element:<GenerateBalance/>
                     }
 
                 ]

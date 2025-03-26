@@ -22,7 +22,7 @@ const updatereservation = require('../controller/reservation/updateReservation')
 const getGroupbyReservation =require('../controller/reservation/getGroupbyDetails')
 const getOrderDetails=require('../controller/order/getOrderdetails')
 const updateorderStatus=require('../controller/order/updateOrderStatus')
-
+const generateBalanceSheet=require('../controller/order/generatebalance')
 
 
 router.post("/Signup", userSignUpController);
@@ -55,4 +55,7 @@ router.get("/get-groupby-reservation",getGroupbyReservation);
 //orders 
 router.get("/get-orders",getOrderDetails);
 router.post("/update-order-status",updateorderStatus)
+router.get('/generate-balance-sheet',generateBalanceSheet)
 module.exports = router;
+
+
