@@ -3,8 +3,9 @@ import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
 import SummaryApi from '../common';
 import jsPDF from 'jspdf'; // Import jsPDF
-
+import { useNavigate } from "react-router-dom";
 const ReservationModal = ({ product, onClose }) => {
+  const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState(null);
   const [availableQty, setAvailableQty] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -66,6 +67,7 @@ const ReservationModal = ({ product, onClose }) => {
         })
       });
       
+      
       const responseData = await response.json();
 
       if (responseData.success) {
@@ -73,7 +75,7 @@ const ReservationModal = ({ product, onClose }) => {
 
         // Generate PDF when reservation is successful
         generatePDF(reservationCode); 
-        onclose()
+        navigate('/add-to-cart')
         
       } else {
         toast.error(responseData?.message || "Failed to upload reservation");
@@ -129,7 +131,9 @@ const ReservationModal = ({ product, onClose }) => {
   // Reservation details
   
   doc.text(`Reservation ID: ${reservationCode}`, 20, 100);
-  doc.text(`Reservation Date: ${Date}`, 20, 105);
+ const currentDate = new Date().toLocaleDateString();
+doc.text(`Reservation Date: ${currentDate}`, 20, 105);
+
   doc.text(`Reservation Status: Not visited`, 20, 110);
   // Add another line separator
   doc.line(20, 115, 190, 115);
@@ -142,14 +146,18 @@ const ReservationModal = ({ product, onClose }) => {
   doc.setFontSize(12);
   doc.text("Product Name", 20, 135);
   doc.text("Quantity", 100, 135);
-  doc.text("Size", 160, 135);
-  doc.text("Unit Price", 160, 135);
-  doc.text("Amount", 160, 135);
+  doc.text("Size", 120, 135);
+doc.text("Unit Price", 150, 135);
+doc.text("Amount", 180, 135);
+
 
   // Table rows
   doc.text(`${product.productName}`, 20, 145);
-  doc.text(`${availableQty}`, 100, 145);
-  doc.text(`${price}`, 160, 145);
+  doc.text(`${quantity}`, 100, 145)
+  doc.text(`${selectedSize}`, 120, 145);
+doc.text(`${price}`, 150, 145);
+doc.text(`${quantity * price}`, 180, 145);
+
 
  
 

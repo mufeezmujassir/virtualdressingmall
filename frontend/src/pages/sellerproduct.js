@@ -12,7 +12,7 @@ const SellerProduct = () => {
 
   const fetchAllProduct = async () => {
     try {
-      const response = await fetch(SummaryApi.allProduct.url);
+      const response = await fetch(SummaryApi.allProductSeller.url);
       const dataResponse = await response.json();
 
       console.log('product data', dataResponse);

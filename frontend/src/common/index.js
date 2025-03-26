@@ -1,4 +1,22 @@
+// import countAddToCartProduct from "../../../backend/controller/user/countOfAddToCartProduct"
+import addToCart from "../helpers/addToCart"
+import axios from "axios";
+
+// Function to fetch cart product count
+export const fetchCartCount = async () => {
+    try {
+        const response = await axios.get("http://localhost:8080/api/cart/count-of-cart");
+        return response.data.count;
+    } catch (error) {
+        console.error("Error fetching cart count:", error);
+        return 0;
+    }
+};
+
 const backendDomin = "http://localhost:8080"
+
+// Configure axios defaults
+axios.defaults.withCredentials = true;
 
 const SummaryApi = {
     SignUP : {
@@ -29,11 +47,14 @@ const SummaryApi = {
         url : `${backendDomin}/api/upload-product`,
         method : 'post'
     },
+    allProductSeller:{
+        url : `${backendDomin}/api/all-product-seller`,
+        method : 'get'
+    },
     allProduct : {
         url : `${backendDomin}/api/get-product`,
         method : 'get'
     },
-   
     updateProduct : {
         url : `${backendDomin}/api/update-product`,
         method  : 'post'
@@ -51,15 +72,15 @@ const SummaryApi = {
         method : 'post'
     },
     addToCartProduct : {
-        url : `${backendDomin}/api/addtocart`,
+        url : `${backendDomin}/api/add-to-cart`,
         method : 'post'
     },
     addToCartProductCount : {
-        url : `${backendDomin}/api/countAddToCartProduct`,
+        url : `${backendDomin}/api/count-of-cart`,
         method : 'get'
     },
     addToCartProductView : {
-        url : `${backendDomin}/api/view-card-product`,
+        url : `${backendDomin}/api/view-cart-product`,
         method : 'get'
     },
     updateCartProduct : {
@@ -74,11 +95,10 @@ const SummaryApi = {
         url : `${backendDomin}/api/category-product`,
         method : 'post'
     },
-     sellerSpecificProduct:{
+    sellerSpecificProduct:{
         url:`${backendDomin}/api/specific-seller-product`,
         method:'get'
-    }
-    ,
+    },
     deleteProduct: {
         url: `${backendDomin}/api/delete-product`,
         method: 'POST'

@@ -13,6 +13,14 @@ import SellerProduct from '../pages/sellerproduct'
 import Shopdetails from '../pages/shopdetails'
 import UserProduct from '../pages/UserProduct'
 import ViewProductFull from '../pages/ViewProductFull'
+
+import SellerDashboard from '../pages/Dashboard'
+import OrderPage from '../pages/OrderPage'
+import SearchProduct from '../pages/SearchProduct'
+import Cancel from '../pages/Cancel'
+import Success from '../pages/Success'
+import Cart from '../pages/Cart'
+
 const router = createBrowserRouter([
  {
      path:"/",
@@ -42,6 +50,26 @@ const router = createBrowserRouter([
              {
                  path:"product/:id",
                  element:<ProductDetails/>
+             },
+             {
+                path : 'cart',
+                element : <Cart/>
+             },
+             {
+                path : 'success',
+                element : <Success/>
+             },
+             {
+                path : 'cancel',
+                element : <Cancel/>
+             },
+             {
+                path : 'search',
+                element : <SearchProduct/>
+             }, 
+             {
+                path : 'order',
+                element : <OrderPage/>
              },
                 
              {
@@ -74,6 +102,10 @@ const router = createBrowserRouter([
              {
                 path:"view-product/:id",
                 element:<ViewProductFull/>
+             },
+             {
+                path:"seller-dashboard",
+                element:<SellerDashboard/>
              }
             
             

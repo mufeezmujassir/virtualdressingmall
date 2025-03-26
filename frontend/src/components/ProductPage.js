@@ -1,38 +1,93 @@
-import React, { useState, useEffect } from "react";
-import ResrvationModel from "../components/Reservation";
+import React, { useState, useEffect, useContext } from "react";
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import AppContext from "../context";
+import SummaryApi from "../common";
+import { useNavigate } from "react-router-dom";
+
 const ProductPage = ({ data }) => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [mainImage, setMainImage] = useState("");
   const [activePrice, setActivePrice] = useState(0);
-  const [showReservationModal, setShowReservationModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { fetchUserAddToCart } = useContext(AppContext);
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.user.user);
+  const token = useSelector((state) => state.user.token);
 
   useEffect(() => {
     if (data) {
       setMainImage(data.productImage?.[0] || "/default.jpg");
-      setActivePrice(data.DiscoutPercentage
-        ? (data.Size[0]?.price * (1 - data.DiscoutPercentage / 100))
-        : data.Size[0]?.price || 0
+      setActivePrice(
+        data.DiscountPercentage
+          ? data.Size[0]?.price * (1 - data.DiscountPercentage / 100)
+          : data.Size[0]?.price || 0
       );
     }
   }, [data]);
 
   const handleSizeSelect = (sizeObj) => {
     setSelectedSize(sizeObj.size);
-    const discountedPrice = sizeObj.price * (1 - (data.DiscoutPercentage || 0) / 100);
+    const discountedPrice =
+      sizeObj.price * (1 - (data.DiscountPercentage || 0) / 100);
     setActivePrice(discountedPrice);
   };
 
-  if (!data) {
-    return (
-      <div className="max-w-7xl mx-auto p-6">
-        <p>Loading...</p>
-      </div>
-    );
-  }
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
+    if (!user?._id || !token) {
+      toast.error("Please login to add items to cart");
+      navigate("/login");
+      return;
+    }
+
+    if (!selectedSize) {
+      toast.error("Please select a size first");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const requestData = {
+        userId: user._id,
+        productId: data._id,
+        size: selectedSize,
+        quantity: 1,
+      };
+
+      const response = await fetch(SummaryApi.addToCartProduct.url, {
+        method: SummaryApi.addToCartProduct.method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || "Failed to add to cart");
+      }
+
+      if (responseData.success) {
+        toast.success("Added to cart successfully");
+        fetchUserAddToCart();
+      } else {
+        toast.error(responseData.message || "Failed to add to cart");
+      }
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      toast.error(error.message || "Failed to add to cart. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-12">
-      {/* Left - Vertical Image Gallery */}
+      {/* LEFT IMAGE & THUMBNAILS */}
       <div className="flex">
         <div className="flex flex-col space-y-4 mr-4">
           {(data.productImage || []).map((img, index) => (
@@ -54,12 +109,11 @@ const ProductPage = ({ data }) => {
         />
       </div>
 
-      {/* Right - Product Details */}
+      {/* RIGHT PRODUCT DETAILS */}
       <div className="flex flex-col">
         <h2 className="text-4xl font-bold mb-2">{data.productName}</h2>
         <p className="text-gray-500 text-lg mb-4">{data.brandName}</p>
 
-        {/* Dynamic Price */}
         <div className="flex items-center space-x-4 mb-6">
           <span className="text-3xl font-bold text-rose-600">
             Rs.{activePrice.toFixed(2)}
@@ -71,29 +125,6 @@ const ProductPage = ({ data }) => {
           )}
         </div>
 
-        {/* Color Selection */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Available Colors: {data.color || "N/A"}</h3>
-          <div className="flex space-x-3">
-            {(data.availableColors || []).map((color, index) => (
-              <div
-                key={index}
-                className={`w-8 h-8 rounded-full border-2 cursor-pointer ${
-                  color === data.color ? "border-black" : "border-gray-300"
-                }`}
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8 mt-4">
-          <p>Gender: {data.Gender}</p>
-          <p>Pattern: {data.Pattern}</p>
-          <p>Fit Type: {data.FitType}</p>
-          <p>Seasonal Collection: {data.seasonalCollection}</p>
-          <br/>
-        </div>
-        {/* Size selection with price update */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Select Size</h3>
           <div className="flex flex-wrap gap-4">
@@ -101,8 +132,10 @@ const ProductPage = ({ data }) => {
               <button
                 key={index}
                 onClick={() => handleSizeSelect(sizeObj)}
-                className={`px-4 py-2 border rounded ${
-                  selectedSize === sizeObj.size ? "bg-rose-600 text-white" : "bg-gray-100"
+                className={`px-4 py-2 border rounded-md ${
+                  selectedSize === sizeObj.size
+                    ? "bg-red-600 text-white border-red-600"
+                    : "border-gray-300 hover:border-red-600"
                 }`}
               >
                 {sizeObj.size}
@@ -111,34 +144,16 @@ const ProductPage = ({ data }) => {
           </div>
         </div>
 
-        <div className="flex space-x-4 mt-4">
-          <button 
-            className="bg-red-600 hover:bg-red-700 transition-all text-white text-base px-4 py-2 rounded-3xl w-1/2"
-          >
-            Add to Cart
-          </button>
-         <button
-            onClick={() => setShowReservationModal(true)}
-            className="bg-red-600 hover:bg-red-700 text-white text-base px-4 py-2 rounded-3xl w-1/2"
-          >
-            Make Reservation
-          </button>
-        </div>
-
-        <div className="mt-8 border-t pt-6">
-          <h3 className="text-xl font-semibold mb-2">Description</h3>
-          <p className="text-gray-600 leading-relaxed">
-            {data.description || "No description available."}
-          </p>
-          
-        </div>
+        <button
+          onClick={handleAddToCart}
+          disabled={loading}
+          className={`w-full bg-red-600 text-white py-3 rounded-md font-semibold ${
+            loading ? "opacity-50 cursor-not-allowed" : "hover:bg-red-700"
+          }`}
+        >
+          {loading ? "Adding to Cart..." : "Add to Cart"}
+        </button>
       </div>
-      {showReservationModal && (
-        <ResrvationModel
-          product={data}
-          onClose={() => setShowReservationModal(false)}
-        />
-      )}
     </div>
   );
 };

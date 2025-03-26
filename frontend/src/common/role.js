@@ -1,7 +1,7 @@
 const role = {
-    ADMIN : "ADMIN",
-    USER : "GENERAL",
+    ADMIN: "ADMIN",
+    USER: "GENERAL",
     SELLER: "SELLER"
 }
 
-export default role 
+export default role; 
