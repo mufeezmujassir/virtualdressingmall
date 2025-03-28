@@ -13,7 +13,6 @@ async function getLineItems(sessionId) {
             for (const item of lineItems.data) {
                 try {
                     const product = await stripe.products.retrieve(item.price.product)
-                    
                     const productId = product.metadata.productId
 
                     const productData = {

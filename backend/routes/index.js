@@ -60,6 +60,7 @@ router.post("/product-details", getproductDetails);
 router.post("/delete-product", deleteProductController);
 router.get("/all-product-seller", getSellerProduct);
 router.get("/search-products", searchProduct);
+router.get("/search-products", searchProduct);
 
 // Reservation routes
 router.post("/add-reservation", authToken, addReservation, paymentController);
@@ -79,7 +80,7 @@ router.get("/view-cart-product", authToken, async (req, res) => {
             .exec();
         
         // Enhance the cart items with the price for the specific size
-        const enhancedCartItems = cartItems.map(item => {
+        let enhancedCartItems = cartItems.map(item => {
             const cartItem = item.toObject();
             
             // Find the price for the specific size

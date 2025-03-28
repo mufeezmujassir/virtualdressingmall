@@ -119,6 +119,14 @@ const SummaryApi = {
     addReservation : {
         url : `${backendDomin}/api/add-reservation`,
         method : 'POST'
+    },
+    payment : {
+        url : `${backendDomin}/api/create-checkout-session`,
+        method : 'POST'
+    },
+    searchProduct : {
+        url : `${backendDomin}/api/search-products?q=`,
+        method : 'GET'
     }
     ,
     getReservationDetails : {
