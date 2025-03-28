@@ -1,12 +1,11 @@
-const displayUSDCurrency = (num) => {
-    const formatter = new Intl.NumberFormat('en-US',{
-        style : "currency",
-        currency : 'USD',
-        minimumFractionDigits : 2
-    })
+const displayLKRCurrency = (num) => {
+    const formatter = new Intl.NumberFormat('en-LK', {
+        style: "currency",
+        currency: 'LKR',
+        minimumFractionDigits: 2
+    });
 
-    return formatter.format(num)
-
+    return formatter.format(num);
 }
 
-export default displayUSDCurrency
+export default displayLKRCurrency;

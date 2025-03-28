@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import AppContext from "../context";
 import SummaryApi from "../common";
 import { useNavigate } from "react-router-dom";
-
+import ResrvationModel from "../components/Reservation";
 const ProductPage = ({ data }) => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [mainImage, setMainImage] = useState("");
@@ -14,7 +14,7 @@ const ProductPage = ({ data }) => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.user);
   const token = useSelector((state) => state.user.token);
-
+  const [showReservationModal, setShowReservationModal] = useState(false)
   useEffect(() => {
     if (data) {
       setMainImage(data.productImage?.[0] || "/default.jpg");
@@ -144,6 +144,7 @@ const ProductPage = ({ data }) => {
           </div>
         </div>
 
+        <div className="flex space-x-4 mt-4">
         <button
           onClick={handleAddToCart}
           disabled={loading}
@@ -153,7 +154,29 @@ const ProductPage = ({ data }) => {
         >
           {loading ? "Adding to Cart..." : "Add to Cart"}
         </button>
+         <button
+            onClick={() => setShowReservationModal(true)}
+            className="bg-red-600 hover:bg-red-700 text-white text-base px-4 py-2 rounded-3xl w-1/2"
+          >
+            Make Reservation
+          </button>
+        </div>
+
+        <div className="mt-8 border-t pt-6">
+          <h3 className="text-xl font-semibold mb-2">Description</h3>
+          <p className="text-gray-600 leading-relaxed">
+            {data.description || "No description available."}
+          </p>
+          
+        </div>
+      
       </div>
+      {showReservationModal && (
+        <ResrvationModel
+          product={data}
+          onClose={() => setShowReservationModal(false)}
+        />
+      )}
     </div>
   );
 };

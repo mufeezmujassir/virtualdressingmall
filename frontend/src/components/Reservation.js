@@ -4,12 +4,13 @@ import { useSelector } from 'react-redux';
 import SummaryApi from '../common';
 import jsPDF from 'jspdf'; // Import jsPDF
 import { useNavigate } from "react-router-dom";
+
 const ReservationModal = ({ product, onClose }) => {
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState(null);
   const [availableQty, setAvailableQty] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const[price,setPrice]=useState(0);
+  const [price, setPrice] = useState(0);
   const user = useSelector((state) => state?.user?.user);
 
   const [data, setData] = useState({
@@ -38,23 +39,24 @@ const ReservationModal = ({ product, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    // Generate ReservationID before submission
+    const reservationCode = generateReservationCode();
+  
+    // Update data with the reservation code immediately
+    const updatedData = {
+      ...data,
+      ReservationID: reservationCode, // Ensure ReservationID is updated
+      Quantity: quantity,
+      size: selectedSize, // Ensure size is set before submission
+    };
+  
     // Validate required fields
     if (quantity <= 0 || !selectedSize) {
       toast.error("Please fill all required fields");
       return;
     }
-
-    // Generate ReservationID before submission
-    const reservationCode = generateReservationCode();
-
-    setData((prev) => ({
-      ...prev,
-      ReservationID: reservationCode,  // Set the generated code here
-      Quantity: quantity,
-      size: selectedSize,
-    }));
-
+  
     try {
       const response = await fetch(SummaryApi.addReservation.url, {
         method: SummaryApi.addReservation.method,
@@ -62,21 +64,17 @@ const ReservationModal = ({ product, onClose }) => {
         headers: {
           "content-type": "application/json"
         },
-        body: JSON.stringify({
-          ...data, // Send updated data with ReservationID, size, and quantity
-        })
+        body: JSON.stringify(updatedData), // Send the updated data here
       });
-      
-      
+  
       const responseData = await response.json();
-
+  
       if (responseData.success) {
         toast.success(`Your reservation ID is ${reservationCode}`);
-
+  
         // Generate PDF when reservation is successful
-        generatePDF(reservationCode); 
-        navigate('/add-to-cart')
-        
+        generatePDF(reservationCode);
+        navigate('/Cart');
       } else {
         toast.error(responseData?.message || "Failed to upload reservation");
       }
@@ -85,6 +83,7 @@ const ReservationModal = ({ product, onClose }) => {
       toast.error("An error occurred while uploading the reservation");
     }
   };
+  
 
   const generateReservationCode = () => {
     let code = "";
@@ -96,85 +95,79 @@ const ReservationModal = ({ product, onClose }) => {
   };
 
   // Function to generate the PDF
- const generatePDF = (reservationCode) => {
-  const doc = new jsPDF();
+  const generatePDF = (reservationCode) => {
+    const doc = new jsPDF();
 
-  // Set font size and add title
-  doc.setFontSize(18);
-  doc.text("Fashion Pulse", 20, 20);
+    // Set font size and add title
+    doc.setFontSize(18);
+    doc.text("Fashion Pulse", 20, 20);
 
-  // Add contact information
-  doc.setFontSize(12);
-  
-  doc.text("+94 74 10 900 19", 20, 35);
-  doc.text("fashionpulse@gmail.com", 20, 40);
-  doc.text("www.fashionpulse.lk", 20, 45);
+    // Add contact information
+    doc.setFontSize(12);
+    doc.text("+94 74 10 900 19", 20, 35);
+    doc.text("fashionpulse@gmail.com", 20, 40);
+    doc.text("www.fashionpulse.lk", 20, 45);
 
-  // Add a line separator
-  doc.setLineWidth(0.5);
-  doc.line(20, 50, 190, 50);
+    // Add a line separator
+    doc.setLineWidth(0.5);
+    doc.line(20, 50, 190, 50);
 
-  // Add reservation details
-  doc.setFontSize(14);
-  doc.text("Reservation Details", 20, 60);
+    // Add reservation details
+    doc.setFontSize(14);
+    doc.text("Reservation Details", 20, 60);
 
-  // User details on the left-hand side
-  doc.setFontSize(12);
-  doc.text(`User Name: ${user.name}`, 20, 70);
-  doc.text(`Email: ${user.email}`, 20, 75);
+    // User details on the left-hand side
+    doc.setFontSize(12);
+    doc.text(`User Name: ${user.name}`, 20, 70);
+    doc.text(`Email: ${user.email}`, 20, 75);
 
-  // Shop details on the right-hand side
-  doc.text(`Shop Name: ${product.ShopID.name}`, 120, 70);
-  doc.text(`Address: ${product.ShopID.address}`, 120, 75);
-  doc.text(`Email: ${product.ShopID.email}`, 120, 80);
+    // Shop details on the right-hand side
+    doc.text(`Shop Name: ${product.ShopID.name}`, 120, 70);
+    doc.text(`Address: ${product.ShopID.address}`, 120, 75);
+    doc.text(`Email: ${product.ShopID.email}`, 120, 80);
 
-  // Reservation details
-  
-  doc.text(`Reservation ID: ${reservationCode}`, 20, 100);
- const currentDate = new Date().toLocaleDateString();
-doc.text(`Reservation Date: ${currentDate}`, 20, 105);
+    // Reservation details
+    doc.text(`Reservation ID: ${reservationCode}`, 20, 100);
+    const currentDate = new Date().toLocaleDateString();
+    doc.text(`Reservation Date: ${currentDate}`, 20, 105);
+    doc.text(`Reservation Status: Not visited`, 20, 110);
 
-  doc.text(`Reservation Status: Not visited`, 20, 110);
-  // Add another line separator
-  doc.line(20, 115, 190, 115);
+    // Add another line separator
+    doc.line(20, 115, 190, 115);
 
-  // Add quantity table
-  doc.setFontSize(14);
-  doc.text("Quantity", 20, 125);
+    // Add quantity table
+    doc.setFontSize(14);
+    doc.text("Quantity", 20, 125);
 
-  // Table headers
-  doc.setFontSize(12);
-  doc.text("Product Name", 20, 135);
-  doc.text("Quantity", 100, 135);
-  doc.text("Size", 120, 135);
-doc.text("Unit Price", 150, 135);
-doc.text("Amount", 180, 135);
+    // Table headers
+    doc.setFontSize(12);
+    doc.text("Product Name", 20, 135);
+    doc.text("Quantity", 100, 135);
+    doc.text("Size", 120, 135);
+    doc.text("Unit Price", 150, 135);
+    doc.text("Amount", 180, 135);
 
+    // Table rows
+    doc.text(`${product.productName}`, 20, 145);
+    doc.text(`${quantity}`, 100, 145);
+    doc.text(`${selectedSize}`, 120, 145);
+    doc.text(`${price}`, 150, 145);
+    doc.text(`${quantity * price}`, 180, 145);
 
-  // Table rows
-  doc.text(`${product.productName}`, 20, 145);
-  doc.text(`${quantity}`, 100, 145)
-  doc.text(`${selectedSize}`, 120, 145);
-doc.text(`${price}`, 150, 145);
-doc.text(`${quantity * price}`, 180, 145);
+    // Add subtotal, tax, and total
+    const total = quantity * price;
 
+    doc.setFontSize(14);
+    doc.text("Total", 20, 195);
+    doc.text(`${total}`, 160, 195);
 
- 
+    // Add notes
+    doc.setFontSize(12);
+    doc.text("Thank you for staying with us. We look forward to your next visit :)", 20, 205);
 
-  // Add subtotal, tax, and total
-  const total= availableQty*price;
-
-  doc.setFontSize(14);
-  doc.text("Total", 20, 195);
-  doc.text(`${total}`, 160, 195);
-
-  // Add notes
-  doc.setFontSize(12);
-  doc.text("Thank you for staying with us. We look forward to your next visit :)", 20, 205);
-
-  // Download the generated PDF
-  doc.save(`reservation-${reservationCode}.pdf`);
-};
+    // Download the generated PDF
+    doc.save(`reservation-${reservationCode}.pdf`);
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">

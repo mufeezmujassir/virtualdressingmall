@@ -5,7 +5,7 @@ const Footer = () => {
     <div> 
       <footer className='bg-salary-100'>
         <div className='container mx-auto p-4'>
-        <p className='text-center font-bold'>Dulaksha Sandeepa Production</p>        
+        <p className='text-center font-bold'>Fashion pulse Production</p>        
         </div>
       </footer>
       

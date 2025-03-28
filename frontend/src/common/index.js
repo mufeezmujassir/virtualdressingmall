@@ -17,7 +17,20 @@ const backendDomin = "http://localhost:8080"
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
-
+export const getSalesReport = async (startDate, endDate) => {
+    const { data } = await axios.get(`${backendDomin}/sales-report`, {
+      params: { startDate, endDate },
+    });
+    return data;
+  };
+  
+  export const downloadPDFReport = async (startDate, endDate) => {
+    window.open(`${backendDomin}/download/pdf?startDate=${startDate}&endDate=${endDate}`);
+  };
+  
+  export const downloadExcelReport = async (startDate, endDate) => {
+    window.open(`${backendDomin}/download/excel?startDate=${startDate}&endDate=${endDate}`);
+  };
 const SummaryApi = {
     SignUP : {
         url : `${backendDomin}/api/signup`,
@@ -107,6 +120,78 @@ const SummaryApi = {
         url : `${backendDomin}/api/add-reservation`,
         method : 'POST'
     }
+    ,
+    getReservationDetails : {
+        url : `${backendDomin}/api/get-reservation`,
+        method : 'get'
+    },
+    updatereservation:{
+        url:`${backendDomin}/api/update-reservation`,
+        method : 'POST'
+    },
+    getgroupbyDetails:{
+        url:`${backendDomin}/api/get-groupby-reservation`,
+        method : 'get'
+    },
+    getOrderDetails:{
+        url:`${backendDomin}/api/get-orders`,
+        method : 'get'
+    },
+    updateOrderStatus:{
+        url:`${backendDomin}/api/update-order-status`,
+        method : 'POST'
+    }
+    ,
+    generateBalanceSheet : {
+        url : `${backendDomin}/api/generate-balance-sheet`,
+        method : 'get'
+    },
+    createBid:{
+        url:`${backendDomin}/api/create-bid`,
+        method : 'POST'
+    },
+    getBid:{
+        url:`${backendDomin}/api/get-bid`,
+        method : 'GET'
+    },
+    getBidbyspecific:{
+        url:`${backendDomin}/api/get-bid-by-specific`,
+        method : 'GET'
+    },
+    updateBid:{
+        url:`${backendDomin}/api/update-bid`,
+        method : 'POST'
+    }, payment : {
+        url : `${backendDomin}/api/create-checkout-session`,
+        method : 'POST'
+    },
+    searchProduct : {
+        url : `${backendDomin}/api/search-products?q=`,
+        method : 'GET'
+    } ,
+    reserveSummary:{
+        url:`${backendDomin}/api/summary-reserve`,
+        method:'GET'
+    },
+    exporexcel:{
+        url:`${backendDomin}/api/export-reserve-excel`,
+        method:'GET'
+    },
+    exportpdfreserve:{
+        url:`${backendDomin}/api/export-pdf-reserve`,
+        method:'GET'
+    }
+    ,
+    getShopDetails:{
+        url:`${backendDomin}/api/get-shop-details`,
+        method:'GET'
+    },
+    getSellerLocation:{
+        url:`${backendDomin}/api/get-seller-location`,
+        method:'GET'
+    }
+
+
 }
 
 export default SummaryApi  
