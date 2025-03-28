@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 
 async function userSignUpController(req,res){
     try{
-        const { email, password, name,role} = req.body
+        const { email, password, name,role,location} = req.body
 
         const user = await userModel.findOne({email})
 
@@ -24,6 +24,10 @@ async function userSignUpController(req,res){
         if(!name){
             throw new Error("Please provide name")
         }
+        if(!location){
+            throw new Error("Please provide location")
+        }
+
 
         const salt = bcrypt.genSaltSync(10);
         const hashPassword = await bcrypt.hashSync(password, salt);

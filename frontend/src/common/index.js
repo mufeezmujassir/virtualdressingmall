@@ -1,5 +1,36 @@
+// import countAddToCartProduct from "../../../backend/controller/user/countOfAddToCartProduct"
+import addToCart from "../helpers/addToCart"
+import axios from "axios";
+
+// Function to fetch cart product count
+export const fetchCartCount = async () => {
+    try {
+        const response = await axios.get("http://localhost:8080/api/cart/count-of-cart");
+        return response.data.count;
+    } catch (error) {
+        console.error("Error fetching cart count:", error);
+        return 0;
+    }
+};
+
 const backendDomin = "http://localhost:8080"
 
+// Configure axios defaults
+axios.defaults.withCredentials = true;
+export const getSalesReport = async (startDate, endDate) => {
+    const { data } = await axios.get(`${backendDomin}/sales-report`, {
+      params: { startDate, endDate },
+    });
+    return data;
+  };
+  
+  export const downloadPDFReport = async (startDate, endDate) => {
+    window.open(`${backendDomin}/download/pdf?startDate=${startDate}&endDate=${endDate}`);
+  };
+  
+  export const downloadExcelReport = async (startDate, endDate) => {
+    window.open(`${backendDomin}/download/excel?startDate=${startDate}&endDate=${endDate}`);
+  };
 const SummaryApi = {
     SignUP : {
         url : `${backendDomin}/api/signup`,
@@ -37,7 +68,6 @@ const SummaryApi = {
         url : `${backendDomin}/api/get-product`,
         method : 'get'
     },
-   
     updateProduct : {
         url : `${backendDomin}/api/update-product`,
         method  : 'post'
@@ -55,15 +85,15 @@ const SummaryApi = {
         method : 'post'
     },
     addToCartProduct : {
-        url : `${backendDomin}/api/addtocart`,
+        url : `${backendDomin}/api/add-to-cart`,
         method : 'post'
     },
     addToCartProductCount : {
-        url : `${backendDomin}/api/countAddToCartProduct`,
+        url : `${backendDomin}/api/count-of-cart`,
         method : 'get'
     },
     addToCartProductView : {
-        url : `${backendDomin}/api/view-card-product`,
+        url : `${backendDomin}/api/view-cart-product`,
         method : 'get'
     },
     updateCartProduct : {
@@ -78,11 +108,10 @@ const SummaryApi = {
         url : `${backendDomin}/api/category-product`,
         method : 'post'
     },
-     sellerSpecificProduct:{
+    sellerSpecificProduct:{
         url:`${backendDomin}/api/specific-seller-product`,
         method:'get'
-    }
-    ,
+    },
     deleteProduct: {
         url: `${backendDomin}/api/delete-product`,
         method: 'POST'
@@ -91,6 +120,15 @@ const SummaryApi = {
         url : `${backendDomin}/api/add-reservation`,
         method : 'POST'
     },
+    payment : {
+        url : `${backendDomin}/api/create-checkout-session`,
+        method : 'POST'
+    },
+    searchProduct : {
+        url : `${backendDomin}/api/search-products?q=`,
+        method : 'GET'
+    }
+    ,
     getReservationDetails : {
         url : `${backendDomin}/api/get-reservation`,
         method : 'get'
@@ -115,8 +153,53 @@ const SummaryApi = {
     generateBalanceSheet : {
         url : `${backendDomin}/api/generate-balance-sheet`,
         method : 'get'
+    },
+    createBid:{
+        url:`${backendDomin}/api/create-bid`,
+        method : 'POST'
+    },
+    getBid:{
+        url:`${backendDomin}/api/get-bid`,
+        method : 'GET'
+    },
+    getBidbyspecific:{
+        url:`${backendDomin}/api/get-bid-by-specific`,
+        method : 'GET'
+    },
+    updateBid:{
+        url:`${backendDomin}/api/update-bid`,
+        method : 'POST'
+    }, payment : {
+        url : `${backendDomin}/api/create-checkout-session`,
+        method : 'POST'
+    },
+    searchProduct : {
+        url : `${backendDomin}/api/search-products?q=`,
+        method : 'GET'
+    } ,
+    reserveSummary:{
+        url:`${backendDomin}/api/summary-reserve`,
+        method:'GET'
+    },
+    exporexcel:{
+        url:`${backendDomin}/api/export-reserve-excel`,
+        method:'GET'
+    },
+    exportpdfreserve:{
+        url:`${backendDomin}/api/export-pdf-reserve`,
+        method:'GET'
     }
-    
+    ,
+    getShopDetails:{
+        url:`${backendDomin}/api/get-shop-details`,
+        method:'GET'
+    },
+    getSellerLocation:{
+        url:`${backendDomin}/api/get-seller-location`,
+        method:'GET'
+    }
+
+
 }
 
 export default SummaryApi  

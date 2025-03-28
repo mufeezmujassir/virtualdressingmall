@@ -74,7 +74,11 @@ const ReservationModal = ({ product, onClose }) => {
   
         // Generate PDF when reservation is successful
         generatePDF(reservationCode);
+<<<<<<< HEAD
         navigate('/add-to-cart');
+=======
+        navigate('/Cart');
+>>>>>>> havindu
       } else {
         toast.error(responseData?.message || "Failed to upload reservation");
       }

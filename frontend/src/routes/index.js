@@ -13,107 +13,162 @@ import SellerProduct from '../pages/sellerproduct'
 import Shopdetails from '../pages/shopdetails'
 import UserProduct from '../pages/UserProduct'
 import ViewProductFull from '../pages/ViewProductFull'
-import AddtoCart from '../components/AddtoCart'
+import OrderCheckout from '../pages/OrderCheckout'
 import SellerDashboard from '../pages/SellerPanel'
 import Overview from '../components/Overview'
+import OrderPage from '../pages/OrderPage'
+import SearchProduct from '../pages/SearchProduct'
+import Cancel from '../pages/Cancel'
+import Success from '../pages/Success'
+import Cart from '../pages/Cart'
 import SellerReservation from '../components/SellerReservationProduct'
 import SellerOrders from '../components/SellerOrders'
 import GenerateBalance from '../components/generateBalancesheet'
+import PutABid from '../components/putAbid'
+import UserBid from '../components/userBid'
+import PlaceBidPage from '../components/placeBidComponent'
+import Profile from '../pages/Profile'
+import SellerView from '../pages/SellerView'
+import ReserveSummary from '../pages/ordersummary'
+import ErrorBoundary from '../components/ErrorBoundary'
+
 const router = createBrowserRouter([
  {
      path:"/",
      element :<App/>,
+     errorElement: <ErrorBoundary />,
      children:[
          {
              path:"",
              element:<Home/>
+         },
+         {
+             path:"login",
+             element:<Login/>
+         },
+         {
+             path:"forgot-password",
+             element:<ForgotPassword/>
+         },
+         {
+             path:"sign-up",
+             element:<SignUp/>
+         },
+         {
+             path:"product-category/:categoryName",
+             element:<CategeoryProduct/>
+         },
+         {
+             path:"product/:id",
+             element:<ProductDetails/>
+         },
+         {
+            path : 'cart',
+            element : <Cart/>
+         },
+         {
+            path : 'checkout',
+            element : <OrderCheckout/>
+         },
+         {
+            path : 'profile',
+            element : <Profile/>
+         },
+         {
+            path : 'success',
+            element : <Success/>
+         },
+         {
+            path : 'cancel',
+            element : <Cancel/>
+         },
+         {
+            path : 'search',
+            element : <SearchProduct/>
+         }, 
+         {
+            path : 'order',
+            element : <OrderPage/>
+         },
+         {
+             path:"admin-panel",
+             element:<AdminPanel/>,
+             children:[
+                 {
+                     path:"all-users",
+                     element:<AllUsers/>
+                 },
+                 {
+                     path:"all-products",
+                     element:<AllProducts/>
+                 }
+             ]
+         },
+         {
+            path:"shop-product",
+            element:<SellerProduct/>
+         },
+         {
+            path:"shop-details",
+            element:<Shopdetails/>
+         },
+         {
+            path:"user-product",
+            element:<UserProduct/>
+         },
+         {
+            path:"view-product/:id",
+            element:<ViewProductFull/>
+         },
+         {
+            path:"seller-dashboard",
+            element:<SellerDashboard/>
+         },
+         {
+            path:"seller-dashboard",
+            element:<SellerDashboard/>,
+            errorElement: <ErrorBoundary />,
+            children:[
+                {
+                    path:"shop-product",
+                    element:<SellerProduct/>
+                },
+                {
+                    path:"overview",
+                    element:<Overview/>
+                },{
+                    path:"reservation",
+                    element:<SellerReservation/>
+                },{
+                    path:"seller-order",
+                    element:<SellerOrders/>
+                },
+                {
+                    path:"generate-balance",
+                    element:<GenerateBalance/>
+                },{
+                    path:"put-a-bid",
+                    element:<PutABid/>
+                },
+                {
+                    path:"seller-view",
+                    element:<SellerView/>
+                },{
+                    path:"seller-reserve-summary",
+                    element:<ReserveSummary/>,
+                    errorElement: <ErrorBoundary />
+                }
 
-             },
-             {
-                 path:"login",
-                 element:<Login/>
-             },
-             {
-                 path:"forgot-password",
-                 element:<ForgotPassword/>
-             },
-             {
-                 path:"sign-up",
-                 element:<SignUp/>
-             },
-             {
-                 path:"product-category/:categoryName",
-                 element:<CategeoryProduct/>
-             },
-             {
-                 path:"product/:id",
-                 element:<ProductDetails/>
-             },
-                
-             {
-                 path:"admin-panel",
-                 element:<AdminPanel/>,
-                 children:[
-                     {
-                         path:"all-users",
-                         element:<AllUsers/>
-                     },
-                     {
-                         path:"all-products",
-                         element:<AllProducts/>
-                     }
-                 ]
-             },
-             
-             
-             {
-                path:"shop-details",
-                element:<Shopdetails/>
-             },
-             {
-                path:"user-product",
-                element:<UserProduct/>
-             },
-             {
-                path:"view-product/:id",
-                element:<ViewProductFull/>
-             },{
-                path:"add-to-cart",
-                element:<AddtoCart/>
-             },
-             {
-                path:"seller-dashboard",
-                element:<SellerDashboard/>,
-                children:[
-                    {
-                        path:"shop-product",
-                        element:<SellerProduct/>
-                    },
-                    {
-                        path:"overview",
-                        element:<Overview/>
-                    },{
-                        path:"reservation",
-                        element:<SellerReservation/>
-                    },{
-                        path:"seller-order",
-                        element:<SellerOrders/>
-                    },
-                    {
-                        path:"generate-balance",
-                        element:<GenerateBalance/>
-                    }
+            ]
 
-                ]
-
-             }
-            
-            
-             
-
-           
+         },{
+            path:"user-bid",
+            element:<UserBid/>
+         },{
+            path:"placeBid/:productId",
+            element:<PlaceBidPage/>
+         }
      ]
 }])
-
 
 export default router;

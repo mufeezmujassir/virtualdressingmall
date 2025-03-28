@@ -56,7 +56,7 @@ const ProductDetails = () => {
             <div className='flex gap-2 lg:flex-col overflow-scroll scrollbar-none h-full'>
               {data.productImage.map((imgURL, index) => (
                 <div className='h-20 w-20 bg-slate-200 rounded p-1' key={imgURL}>
-                  <img src={imgURL} alt="Product Image" className='w-full h-full object-scale-down mix-blend-multiply' />
+                  <img src={imgURL} alt={`Product ${index + 1}`} className='w-full h-full object-scale-down mix-blend-multiply' />
                 </div>
               ))}
             </div>

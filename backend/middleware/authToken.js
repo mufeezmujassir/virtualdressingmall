@@ -1,43 +1,48 @@
 const jwt = require('jsonwebtoken')
 
 async function authToken(req, res, next) {
-    try{
-        const token = req.cookies?.token 
+    try {
+        // Check for token in both cookie and Authorization header
+        const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
 
-        console.log("token", token)
-
-        if(!token){
-            return res.status(200).json({
-                message : "User not Logged in",
-                error : true,
-                success : false,
-              
-            })
+        if (!token) {
+            return res.status(401).json({
+                message: "Please log in to your account",
+                error: true,
+                success: false
+            });
         }
 
         jwt.verify(token, process.env.TOKEN_SECRET_KEY, function(err, decoded) {
-            console.log(err) 
-            console.log("decoded",decoded)
-
-            if(err){
-                console.log("error auth",err)
-            
+            if (err) {
+                console.error("Auth error:", err);
+                return res.status(401).json({
+                    message: "Invalid or expired token. Please log in again.",
+                    error: true,
+                    success: false
+                });
             }
-            req.userId = decoded?._id
-            next()
+            
+            if (!decoded?._id) {
+                return res.status(401).json({
+                    message: "Invalid token payload",
+                    error: true,
+                    success: false
+                });
+            }
+
+            // Fix: Change userID to userId to match what the controller expects
+            req.userId = decoded._id;
+            next();
         });
-
-
-        
-
-    }catch(err){
-        res.status(400).json({
-            message: err.message || err,
-            data : [],
+    } catch (err) {
+        console.error("Auth middleware error:", err);
+        return res.status(500).json({
+            message: "Authentication error",
             error: true,
             success: false
-        })
+        });
     }
 }
 
-module.exports = authToken
+module.exports = authToken;
