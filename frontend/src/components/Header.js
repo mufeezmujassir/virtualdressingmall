@@ -126,70 +126,8 @@ const Header = () => {
               ☰
             </button>
 
-<<<<<<< HEAD
-      </div>
-    </nav>
 
-)
-    }
-     else if(user?.role===role.USER){
-      return(<nav className="bg-[#E54040] border-gray-200">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
-        
-        
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="block md:hidden text-white focus:outline-none"
-        >
-          ☰
-        </button>
-
-        {/* Navigation Links */}
-        <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
-          <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-[#E54040] md:mt-0 md:border-0">
-            <li><Link to={"/"} className="block py-2 px-3 text-white hover:text-black">Home</Link></li>
-            <li><Link to={"/shop-details"} className="block py-2 px-3 text-white hover:text-black">Shops</Link></li>
-            <li><Link to={'/user-product'} className="block py-2 px-3 text-white hover:text-black">Products</Link></li>
-            <li><a href="#" className="block py-2 px-3 text-white hover:text-black">Bid</a></li>
-            
-          </ul>
-        </div>
-
-      </div>
-    </nav>)
-    }
-    else if(user?.role===role.SELLER){
-      return(
-        <nav className="bg-[#E54040] border-gray-200">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-2">
-        
-        
-
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="block md:hidden text-white focus:outline-none"
-        >
-          ☰
-        </button>
-
-        {/* Navigation Links */}
-        <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
-          <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-[#E54040] md:mt-0 md:border-0">
-            <li><Link to={"/seller-dashboard"} className="block py-2 px-3 text-white hover:text-black">Home</Link></li>
-            
-          </ul>
-        </div>
-
-      </div>
-    </nav>
-      
-    
-
-)
-=======
             {/* Navigation Links */}
             <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
               <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-red-600 md:mt-0 md:border-0">
@@ -222,7 +160,7 @@ const Header = () => {
       return(
         <div></div>
       )
->>>>>>> havindu
+
     }
   }
 
@@ -419,15 +357,7 @@ const Header = () => {
           )}
 
           <div className='text-2xl relative'>
-<<<<<<< HEAD
-            <Link to={'/add-to-cart'}>
-              <span>
-                <FaShoppingCart />
-              </span>
-              <div className='bg-red-600 text-white w-5 h-5 rounded-full p-1 flex items-center justify-center absolute top-0 -right-3'>
-                <p className='text-sm'>0</p>
-              </div>
-=======
+
             <Link to={user?._id && token ? '/cart' : '/login'}>
               <FaShoppingCart />
               {cartProductCount > 0 && (
@@ -435,7 +365,7 @@ const Header = () => {
                   <p className='text-sm'>{cartProductCount}</p>
                 </div>
               )}
->>>>>>> havindu
+
             </Link>
           </div>
 

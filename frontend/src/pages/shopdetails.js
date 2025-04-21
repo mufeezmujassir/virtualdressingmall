@@ -9,11 +9,13 @@ import {
   FaDirections,
   FaTimes
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import SummaryApi from "../common";
 import Modal from "react-modal";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { useNavigate } from "react-router-dom";
 
 // Fix Leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -41,12 +43,16 @@ const ShopDetails = () => {
   const [selectedShop, setSelectedShop] = useState(null);
   const [directionsModalOpen, setDirectionsModalOpen] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
-
+  const navigate = useNavigate();
   // Get user location when component mounts
   useEffect(() => {
     fetchShops();
     requestLocationPermission();
   }, []);
+
+  const handleVisit = (shopId) => {
+    navigate("/shop-products", { state: { shopId } }); 
+  };
 
   const fetchShops = () => {
     fetch(SummaryApi.getShopDetails.url)
@@ -203,9 +209,12 @@ const ShopDetails = () => {
                   <FaThumbsUp className="mr-1" />
                   <span>Like</span>
                 </button>
-                <button className="flex items-center text-green-500 hover:text-green-700 transition-colors">
-                  <FaStore className="mr-1" />
-                  <span>Visit</span>
+                <button
+                    onClick={() => handleVisit(shop._id)}
+                    className="flex items-center text-green-500 hover:text-green-700 transition-colors"
+                  >
+                    <FaStore className="mr-1" />
+                    <span>Visit</span>
                 </button>
                 <button className="flex items-center text-purple-500 hover:text-purple-700 transition-colors">
                   <FaShareAlt className="mr-1" />

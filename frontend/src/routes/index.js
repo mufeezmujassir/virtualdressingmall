@@ -31,6 +31,7 @@ import Profile from '../pages/Profile'
 import SellerView from '../pages/SellerView'
 import ReserveSummary from '../pages/ordersummary'
 import ErrorBoundary from '../components/ErrorBoundary'
+import ShopProduct from '../pages/shopProduct'
 
 const router = createBrowserRouter([
  {
@@ -111,6 +112,10 @@ const router = createBrowserRouter([
          {
             path:"shop-details",
             element:<Shopdetails/>
+         },
+         {
+            path:"shop-products",
+            element:<ShopProduct/>
          },
          {
             path:"user-product",
