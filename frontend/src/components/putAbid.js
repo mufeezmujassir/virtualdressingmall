@@ -280,8 +280,8 @@ const PutABid = () => {
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
                       <span className="text-blue-600 font-medium">
                         {/* FIXED: Better handling of user initial */}
-                        {bidder.userDetails?.name?.charAt(0) || 
-                         (bidder.userDetails?.firstName?.charAt(0)) || 'U'}
+                        {bidder.userID.name.charAt(0) || 
+                         (bidder.userID.name?.charAt(0)) || 'U'}
                       </span>
                     </div>
                     <div>
@@ -290,11 +290,11 @@ const PutABid = () => {
                         {bidder.userDetails?.name || 
                          (bidder.userDetails?.firstName && bidder.userDetails?.lastName ? 
                           `${bidder.userDetails.firstName} ${bidder.userDetails.lastName}` : 
-                          bidder.userDetails?.email?.split('@')[0] || 'Anonymous Bidder')}
+                          bidder.userID.name || 'Anonymous Bidder')}
                       </h4>
                       {/* FIXED: Display email properly */}
                       <p className="text-sm text-gray-600">
-                        {bidder.userDetails?.email || 'No email available'}
+                        {bidder.userID.email || 'No email available'}
                       </p>
                     </div>
                   </div>
