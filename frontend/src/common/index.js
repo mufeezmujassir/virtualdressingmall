@@ -198,8 +198,30 @@ const SummaryApi = {
         url:`${backendDomin}/api/get-seller-location`,
         method:'GET'
     }
-
-
+   ,
+   sellerSalesOverView:{
+        url:`${backendDomin}/api/get-seller-sales-overview`,
+        method:'GET'
+   }
+   ,
+   orderIncomeReport:{
+    url:`${backendDomin}/api/get-income-order-report`,
+    method:'GET'
+   }
+   ,closeBidReport:{
+    url:`${backendDomin}/api/get-bide-report`,
+    method:'POST'
+   }
+   ,getWinningBid:{
+    url:`${backendDomin}/api/get-winning-bid`,
+    method:'GET'
+   },
+   getReservationRevenue:{
+    url:`${backendDomin}/api/get-reservation-revenue-by-shop`,
+    method:'GET'
+   }
 }
 
-export default SummaryApi  
+
+
+export default SummaryApi  ;

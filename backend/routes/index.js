@@ -40,6 +40,12 @@ const updateBid=require('../controller/bid/updateBid')
 const searchProduct = require('../controller/product/searchProduct');
 const getShopdetails=require('../controller/user/shopDetails')
 const retreiwLocation=require('../controller/user/retreiwLocation')
+const sellerSalesOverView=require('../controller/finance/sellerSalesOverview')
+const orderIncomeReport=require('../controller/finance/orderIncomeReport')
+const getReservationReview=require('../controller/finance/getReservationRevenueByShop')
+const getWinningBid=require('../controller/winningbid/getwinningbid')
+
+
 // Auth routes
 router.post("/Signup", userSignUpController);
 router.post("/signin", userSigninController);
@@ -380,6 +386,14 @@ router.get("/export-pdf-reserve", async (req, res) => {
 //shop details
 router.get("/get-shop-details",getShopdetails)
 router.get("/get-seller-location",retreiwLocation)
+
+
+
+//finacial
+router.get("/get-seller-sales-overview",sellerSalesOverView);
+router.get("/get-income-order-report",orderIncomeReport);
+router.get('/get-winning-bid',getWinningBid)
+router.get('/get-reservation-revenue-by-shop',getReservationReview)
 module.exports = router;
 
 

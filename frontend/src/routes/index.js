@@ -32,7 +32,9 @@ import SellerView from '../pages/SellerView'
 import ReserveSummary from '../pages/ordersummary'
 import ErrorBoundary from '../components/ErrorBoundary'
 import ShopProduct from '../pages/shopProduct'
-
+import SellerSalesOverview from '../components/SalesOverview'
+import IncomeReportDashboard from '../components/IncomeReportDashboard'
+import ReservationRevenue from '../components/reservationRevenue'
 const router = createBrowserRouter([
  {
      path:"/",
@@ -163,6 +165,20 @@ const router = createBrowserRouter([
                     element:<ReserveSummary/>,
                     errorElement: <ErrorBoundary />
                 }
+                ,{
+                    path:"seller-sales-overview",
+                    element:<SellerSalesOverview/>
+                    
+                },
+                {
+                    path:"seller-income-report",
+                    element:<IncomeReportDashboard/>
+                },
+                {
+                    path:"reservation-revenue",
+                    element:<ReservationRevenue/>
+                }
+                
 
             ]
 
