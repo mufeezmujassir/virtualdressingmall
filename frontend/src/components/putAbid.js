@@ -259,13 +259,13 @@ const PutABid = () => {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <span className="text-gray-600 text-sm">Starting Price</span>
-                  <p className="font-bold text-lg">${selectedBid.startPrice}</p>
+                  <p className="font-bold text-lg">Rs.{selectedBid.startPrice}</p>
                 </div>
                 <div>
                   <span className="text-gray-600 text-sm">Current Highest Bid</span>
                   <p className="font-bold text-lg text-green-600">
                     {selectedBid.bidder.length > 0 ? 
-                      `$${getHighestBid(selectedBid.bidder)}` : 
+                      `Rs.${getHighestBid(selectedBid.bidder)}` : 
                       'No bids yet'}
                   </p>
                 </div>
@@ -315,8 +315,8 @@ const PutABid = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-green-600 font-bold text-lg">${bidder.bidAmount}</div>
-                      <div className="text-sm text-gray-500">{formatDate(bidder.bidDate)}</div>
+                      <div className="text-green-600 font-bold text-lg">Rs.{bidder.bidAmount}</div>
+                      
                     </div>
                   </div>
                   {bidder.message && (
@@ -385,7 +385,7 @@ const PutABid = () => {
             <div>
               <label className="block mb-2 text-gray-700">Start Price</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">Rs.</span>
                 <input
                   type="number"
                   step="0.01"
@@ -500,12 +500,12 @@ const PutABid = () => {
                     <div className="flex justify-between items-end mb-2">
                       <div>
                         <p className="text-gray-500 text-sm">Starting at</p>
-                        <p className="font-medium">${bid.startPrice}</p>
+                        <p className="font-medium">Rs.{bid.startPrice}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-gray-500 text-sm">Highest bid</p>
                         <p className="font-medium text-green-600">
-                          {bid.bidder.length > 0 ? `$${highestBid}` : 'No bids'}
+                          {bid.bidder.length > 0 ? `Rs.${highestBid}` : 'No bids'}
                         </p>
                       </div>
                     </div>

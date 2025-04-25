@@ -113,7 +113,7 @@
                     </div>
                     <div className="p-4">
                       <h3 className="text-lg font-semibold">{bid.productID.productName}</h3>
-                      <p className="mt-2"><strong>Start Price:</strong> ${bid.startPrice}</p>
+                      <p className="mt-2"><strong>Start Price:</strong> Rs.{bid.startPrice}</p>
                       
                       <button
                         className="mt-4 w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -154,7 +154,7 @@
                       <h4 className="font-medium">{userBid.productID.productName}</h4>
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm text-gray-600">Your bid: </span>
-                        <span className="font-bold text-green-600">${userBid.userBidAmount}</span>
+                        <span className="font-bold text-green-600">Rs.{userBid.userBidAmount}</span>
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
                         {new Date(userBid.createdAt).toLocaleDateString()}

@@ -76,7 +76,7 @@ const PlaceBidPage = () => {
                 {currentBid.bidder.map((bid, index) => (
                     <div key={index} className="mb-2">
                         <p><strong>Bid Holder {index + 1}:</strong> {bid.userID?.name || 'Unknown'}</p>
-                        <p><strong>Bid Amount:</strong> ${bid.bidAmount}</p>
+                        <p><strong>Bid Amount:</strong> Rs.{bid.bidAmount}</p>
                     </div>
                 ))}
             </div>
@@ -86,7 +86,7 @@ const PlaceBidPage = () => {
 
             <div className="mb-4">
                 <h3 className="text-lg font-semibold">{currentBid?.productID?.productName}</h3>
-                <p><strong>Start Price:</strong> ${currentBid?.startPrice}</p>
+                <p><strong>Start Price:</strong> Rs.{currentBid?.startPrice}</p>
             </div>
 
             <input

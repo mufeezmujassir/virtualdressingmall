@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { FaRegUserCircle, FaEdit, FaCamera, FaHistory, FaShoppingBag } from 'react-icons/fa';
+import { FaRegUserCircle, FaEdit, FaCamera, FaHistory, FaShoppingBag, FaCalendarAlt } from 'react-icons/fa';
 import { MdLocationOn, MdEmail, MdPerson, MdSave, MdArrowBack, MdAddAPhoto } from 'react-icons/md';
 import SummaryApi from '../common';
 import { setUserDetails, selectUser, selectToken } from '../store/userSlice';
@@ -24,6 +24,8 @@ const Profile = () => {
     });
     const [loading, setLoading] = useState(false);
     const [orderHistory, setOrderHistory] = useState([]);
+    const [reservationHistory, setReservationHistory] = useState([]);
+    const [fetchingReservations, setFetchingReservations] = useState(false);
 
     useEffect(() => {
         if (!user?._id || !token) {
@@ -41,6 +43,39 @@ const Profile = () => {
         // Fetch order history (you can implement this later)
         // fetchOrderHistory();
     }, [user, token, navigate]);
+
+    // Fetch reservation history when the reservations tab is selected
+    useEffect(() => {
+        if (activeTab === 'reservations' && user?._id && token) {
+            fetchReservationHistory();
+        }
+    }, [activeTab, user, token]);
+
+    const fetchReservationHistory = async () => {
+        setFetchingReservations(true);
+        try {
+            const response = await axios.get(SummaryApi.getReservationDetails.url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                // Filter reservations for the current user
+                const userReservations = response.data.data.filter(
+                    reservation => reservation.userID?._id === user._id
+                );
+                setReservationHistory(userReservations);
+            } else {
+                toast.error('Failed to fetch reservation history');
+            }
+        } catch (error) {
+            console.error('Error fetching reservations:', error);
+            toast.error(error.response?.data?.message || 'Failed to fetch reservation history');
+        } finally {
+            setFetchingReservations(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -349,6 +384,120 @@ const Profile = () => {
         </div>
     );
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    const renderReservationsContent = () => (
+        <div className="bg-white rounded-xl shadow-xl p-6">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Reservation History</h3>
+            
+            {fetchingReservations ? (
+                <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading your reservations...</p>
+                </div>
+            ) : reservationHistory && reservationHistory.length > 0 ? (
+                <div className="space-y-6">
+                    {reservationHistory.map((reservation) => (
+                        <div key={reservation._id} className="border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
+                            <div className="bg-gray-100 p-4 border-b">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <span className="text-sm font-medium text-gray-500">Reservation ID</span>
+                                        <h4 className="font-semibold">{reservation.ReservationID}</h4>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-sm font-medium text-gray-500">Date</span>
+                                        <p className="font-semibold">{formatDate(reservation.ReservationDate)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="p-4 flex flex-wrap md:flex-nowrap">
+                                {/* Product Image */}
+                                <div className="w-full md:w-1/4 mb-4 md:mb-0">
+                                    {reservation.productID?.productImage && reservation.productID.productImage.length > 0 ? (
+                                        <img 
+                                            src={reservation.productID.productImage[0]} 
+                                            alt={reservation.productID.productName}
+                                            className="w-full h-32 object-cover rounded-lg"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <p className="text-gray-400">No Image</p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Product Details */}
+                                <div className="w-full md:w-3/4 md:pl-6">
+                                    <h4 className="font-bold text-lg mb-2">{reservation.productID?.productName || 'Product Name Unavailable'}</h4>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Brand</p>
+                                            <p className="font-medium">{reservation.productID?.brandName || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Category</p>
+                                            <p className="font-medium">{reservation.productID?.category || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Size</p>
+                                            <p className="font-medium">{reservation.size}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Quantity</p>
+                                            <p className="font-medium">{reservation.Quantity}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="mt-4 pt-3 border-t">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="text-sm text-gray-500">Reservation Status</p>
+                                                <p className={`font-semibold ${
+                                                    reservation.ValidateReservation === 'Confirmed' 
+                                                        ? 'text-green-600' 
+                                                        : reservation.ValidateReservation === 'Rejected'
+                                                            ? 'text-red-600'
+                                                            : 'text-yellow-600'
+                                                }`}>
+                                                    {reservation.ValidateReservation || 'Pending'}
+                                                </p>
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-12">
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                        <FaCalendarAlt className="text-gray-400 text-3xl" />
+                    </div>
+                    <h4 className="text-xl font-medium mb-2">No Reservations Yet</h4>
+                    <p className="text-gray-500 mb-6">You haven't made any product reservations yet.</p>
+                    <button 
+                        onClick={() => navigate('/')}
+                        className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Explore Products
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-20 pb-12">
             <div className="container mx-auto px-4">
@@ -356,15 +505,15 @@ const Profile = () => {
                 <div className="max-w-5xl mx-auto mb-8">
                     <div className="animate__animated animate__fadeInDown">
                         <h1 className="text-3xl font-bold text-gray-800 mb-2">My Profile</h1>
-                        <p className="text-gray-600">Manage your personal information and track your orders</p>
+                        <p className="text-gray-600">Manage your personal information and track your orders & reservations</p>
                     </div>
                 </div>
                 
                 {/* Profile Tabs */}
                 <div className="max-w-5xl mx-auto mb-6">
-                    <div className="flex border-b">
+                    <div className="flex border-b overflow-x-auto">
                         <button
-                            className={`py-3 px-6 font-medium transition-colors ${
+                            className={`py-3 px-6 font-medium transition-colors whitespace-nowrap ${
                                 activeTab === 'profile' 
                                     ? 'text-red-600 border-b-2 border-red-600' 
                                     : 'text-gray-600 hover:text-red-500'
@@ -374,7 +523,7 @@ const Profile = () => {
                             Profile
                         </button>
                         <button
-                            className={`py-3 px-6 font-medium transition-colors ${
+                            className={`py-3 px-6 font-medium transition-colors whitespace-nowrap ${
                                 activeTab === 'orders' 
                                     ? 'text-red-600 border-b-2 border-red-600' 
                                     : 'text-gray-600 hover:text-red-500'
@@ -383,16 +532,28 @@ const Profile = () => {
                         >
                             Order History
                         </button>
+                        <button
+                            className={`py-3 px-6 font-medium transition-colors whitespace-nowrap ${
+                                activeTab === 'reservations' 
+                                    ? 'text-red-600 border-b-2 border-red-600' 
+                                    : 'text-gray-600 hover:text-red-500'
+                            }`}
+                            onClick={() => setActiveTab('reservations')}
+                        >
+                            Reservation History
+                        </button>
                     </div>
                 </div>
                 
                 {/* Tab Content */}
                 <div className="max-w-5xl mx-auto">
-                    {activeTab === 'profile' ? renderProfileContent() : renderOrdersContent()}
+                    {activeTab === 'profile' ? renderProfileContent() : 
+                     activeTab === 'orders' ? renderOrdersContent() : 
+                     renderReservationsContent()}
                 </div>
             </div>
         </div>
     );
 };
 
-export default Profile; 
+export default Profile;
