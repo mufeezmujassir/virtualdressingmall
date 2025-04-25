@@ -43,10 +43,12 @@ const retreiwLocation=require('../controller/user/retreiwLocation')
 const sellerSalesOverView=require('../controller/finance/sellerSalesOverview')
 const orderIncomeReport=require('../controller/finance/orderIncomeReport')
 const getReservationReview=require('../controller/finance/getReservationRevenueByShop')
-const getWinningBid=require('../controller/winningbid/getwinningbid')
+const { processBidCloseouts, getBidIncomeStats } = require('../controller/finance/bidIncomeController');
 
+router.post('/process-closeouts', processBidCloseouts);
+router.get('/bid-income-stats', getBidIncomeStats);// Auth routes
 
-// Auth routes
+ 
 router.post("/Signup", userSignUpController);
 router.post("/signin", userSigninController);
 router.get("/user-details", authToken, userDetailsController);
@@ -392,8 +394,8 @@ router.get("/get-seller-location",retreiwLocation)
 //finacial
 router.get("/get-seller-sales-overview",sellerSalesOverView);
 router.get("/get-income-order-report",orderIncomeReport);
-router.get('/get-winning-bid',getWinningBid)
 router.get('/get-reservation-revenue-by-shop',getReservationReview)
+
 module.exports = router;
 
 

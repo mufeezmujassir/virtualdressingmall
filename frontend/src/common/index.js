@@ -220,6 +220,14 @@ const SummaryApi = {
     url:`${backendDomin}/api/get-reservation-revenue-by-shop`,
     method:'GET'
    }
+   ,getprocessClosedout:{
+    url:`${backendDomin}/api/process-closeouts`,
+    method:'POST'
+   }
+   ,getBidIncomeStats:{
+    url:`${backendDomin}/api/bid-income-stats`,
+    method:'GET'
+   }
 }
 
 

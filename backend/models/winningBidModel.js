@@ -1,23 +1,33 @@
 const mongoose = require('mongoose');
 
 const winningBidSchema = new mongoose.Schema({
-  productID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'product'
-  },
-  shopID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user'
-  },
-  userID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user'
-  },
-  winningAmount: Number,
-  closeDate: Date,
+    bidID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "bid",
+        required: true
+    }, 
+    productID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "product",
+        required: true
+    },
+    userID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+        required: true
+    },
+    bidAmount: {
+        type: Number,
+        required: true
+    },
+    closeDate: {
+        type: Date,
+        required: true
+    }
 }, {
-  timestamps: true
+    timestamps: true
 });
 
-const WinningBid = mongoose.model('winningBid', winningBidSchema);
+const WinningBid = mongoose.model("winningBid", winningBidSchema);
+
 module.exports = WinningBid;

@@ -1,5 +1,5 @@
 const Order = require('../../models/orderModel');
-const Bid = require('../../models/bidModel');
+const Bid = require('../../models/winningBidModel');
 const Product = require('../../models/productModel');
 const mongoose = require('mongoose');
 
@@ -46,19 +46,15 @@ console.log(sellerId)
     })).sort((a, b) => b.totalSold - a.totalSold).slice(0, 5);
 
     // --- Revenue from Winning Bids ---
-    const bids = await Bid.find({
+    const winningBids = await Bid.find({
       productID: { $in: productIds },
       ...dateFilter
     });
-
+    
+    // Calculate total revenue from winning bids
     let totalBidRevenue = 0;
-    for (const bid of bids) {
-      if (bid.bidder.length > 0) {
-        const highestBid = bid.bidder.reduce((prev, current) => {
-          return (current.bidAmount > prev.bidAmount) ? current : prev;
-        });
-        totalBidRevenue += highestBid.bidAmount;
-      }
+    for (const bid of winningBids) {
+      totalBidRevenue += bid.bidAmount;
     }
 
     const totalRevenue = totalOrderRevenue + totalBidRevenue;

@@ -35,6 +35,7 @@ import ShopProduct from '../pages/shopProduct'
 import SellerSalesOverview from '../components/SalesOverview'
 import IncomeReportDashboard from '../components/IncomeReportDashboard'
 import ReservationRevenue from '../components/reservationRevenue'
+import BidInncomeDashboard from '../components/BidincomeDashboard'
 const router = createBrowserRouter([
  {
      path:"/",
@@ -178,6 +179,11 @@ const router = createBrowserRouter([
                     path:"reservation-revenue",
                     element:<ReservationRevenue/>
                 }
+                ,{
+                    path:"bid-dashboard",
+                    element:<BidInncomeDashboard/>
+                }
+               
                 
 
             ]

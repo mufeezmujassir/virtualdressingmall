@@ -21,7 +21,8 @@
         const response = await axios.get(SummaryApi.getBid.url);
         
         if (response.data.success) {
-          setBids(response.data.data);
+          const activeBids = response.data.data.filter(bid => bid.status === 'active');
+          setBids(activeBids);
         } else {
           toast.error('Failed to fetch bids');
         }
