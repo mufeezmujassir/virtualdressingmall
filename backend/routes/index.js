@@ -44,6 +44,8 @@ const sellerSalesOverView=require('../controller/finance/sellerSalesOverview')
 const orderIncomeReport=require('../controller/finance/orderIncomeReport')
 const getReservationReview=require('../controller/finance/getReservationRevenueByShop')
 const { processBidCloseouts, getBidIncomeStats } = require('../controller/finance/bidIncomeController');
+const { addComment, getComments, toggleCommentLike, deleteComment } = require('../controller/comment/commentController');
+
 
 router.post('/process-closeouts', processBidCloseouts);
 router.get('/bid-income-stats', getBidIncomeStats);// Auth routes
@@ -77,6 +79,16 @@ router.post("/add-reservation",authToken,addReservation);
 router.get("/get-reservation",getReservationDetails);
 router.post("/update-reservation",updatereservation);
 router.get("/get-groupby-reservation",getGroupbyReservation);
+
+
+// Comment routes - use root paths
+router.post('/comments', authToken, addComment);
+router.get('/comments/:productId', getComments);
+router.post('/comments/:commentId/like', authToken, toggleCommentLike);
+router.delete('/comments/:commentId', authToken, deleteComment);
+
+
+
 
 // Cart routes - all protected by authToken
 router.post("/add-to-cart",  addToCartController);
@@ -395,6 +407,68 @@ router.get("/get-seller-location",retreiwLocation)
 router.get("/get-seller-sales-overview",sellerSalesOverView);
 router.get("/get-income-order-report",orderIncomeReport);
 router.get('/get-reservation-revenue-by-shop',getReservationReview)
+
+
+// Test route for direct comment insertion without auth
+router.post('/test-comment', async (req, res) => {
+    try {
+        const CommentModel = require('../models/commentModel');
+        
+        console.log('Test comment endpoint hit');
+        console.log('Body:', req.body);
+        
+        // Create hardcoded comment for testing
+        const testComment = new CommentModel({
+            productId: req.body.productId || '655f5d4c2e3b56a50cc3abe9',
+            userId: '655f5d4c2e3b56a50cc3abe8',
+            text: req.body.text || 'Test comment',
+            userName: 'Test User',
+            rating: req.body.rating || 5,
+            likes: []
+        });
+        
+        const savedComment = await testComment.save();
+        console.log('Test comment saved:', savedComment._id);
+        
+        return res.json({
+            success: true,
+            message: 'Test comment added',
+            data: savedComment
+        });
+    } catch (error) {
+        console.error('Test comment error:', error);
+        return res.json({
+            success: false,
+            message: 'Error: ' + error.message
+        });
+    }
+});
+
+router.get('/shop/:shopId', async (req, res) => {
+    const { shopId } = req.params;
+
+    try {
+        // Step 1: Find all products for the given shop
+        const products = await ProductModel.find({ ShopID: shopId }).select('_id');
+
+        if (!products.length) {
+            return res.status(404).json({ message: 'No products found for this shop.' });
+        }
+
+        const productIds = products.map(product => product._id);
+
+        // Step 2: Find comments related to these products
+        const comments = await CommentModel.find({ productId: { $in: productIds } })
+            .populate('productId', 'productName') // populate product name
+            .populate('userId', 'name email')     // populate user info (optional)
+            .sort({ createdAt: -1 });             // latest first
+
+        res.status(200).json({ reviews: comments });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).json({ message: 'Server error while fetching reviews.' });
+    }
+});
 
 module.exports = router;
 

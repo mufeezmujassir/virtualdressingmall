@@ -21,15 +21,15 @@ const SellerPanel = () => {
 
   
   const navItems = [
-    { path: 'overview', label: 'Dashboard' },
+    {path:'seller-sales-overview',label:'Sales OverView'},
     { path: 'shop-product', label: 'My Products' },
     { path: 'reservation', label: 'Reservations' },
     {path: 'seller-order', label: 'Orders'},
     {path:'put-a-bid',label:'Put a Bid'},
-    
+    {path:'review',label:'Review'},
    
     
-    {path:'seller-sales-overview',label:'Sales OverView'},
+    
     {path:'seller-income-report',label:"Order Income"},
     {path:'reservation-revenue',label:"Reservation Revenue"}
     ,{path:'bid-dashboard',label:"Bid Dashboard"}

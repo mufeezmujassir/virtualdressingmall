@@ -36,6 +36,12 @@ import SellerSalesOverview from '../components/SalesOverview'
 import IncomeReportDashboard from '../components/IncomeReportDashboard'
 import ReservationRevenue from '../components/reservationRevenue'
 import BidInncomeDashboard from '../components/BidincomeDashboard'
+import SellerDashboardReview from '../pages/SellerDashboardReview'
+
+
+
+
+
 const router = createBrowserRouter([
  {
      path:"/",
@@ -182,6 +188,10 @@ const router = createBrowserRouter([
                 ,{
                     path:"bid-dashboard",
                     element:<BidInncomeDashboard/>
+                },
+                {
+                    path:"review",
+                    element:<SellerDashboardReview/>
                 }
                
                 

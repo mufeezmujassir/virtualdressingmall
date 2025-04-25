@@ -32,7 +32,8 @@ const PutABid = () => {
       if (response.data.success) {
         // Filter products for the current seller
         const sellerProducts = response.data.data.filter(product => 
-          product.ShopID._id === user._id
+          product.ShopID === user._id || 
+          (product.ShopID && product.ShopID._id === user._id)
         );
         setProducts(sellerProducts);
       } else {
@@ -50,17 +51,24 @@ const PutABid = () => {
   const fetchAllBids = async () => {
     try {
       setLoading(true);
-      if (!user?._id) {
+      if (!user?._id || products.length === 0) {
+        setLoading(false);
         return;
       }
 
+      // Create an array of product IDs owned by this seller
+      const sellerProductIds = products.map(product => product._id);
+      
+      // Get all bids
       const response = await axios.get(SummaryApi.getBidbyspecific.url);
 
       if (response.data.success) {
         // Filter bids for the current seller's products
         const sellerBids = response.data.data.filter(bid => {
-          return products.some(product => product._id === bid.productID._id);
+          const productId = bid.productID?._id || bid.productID;
+          return sellerProductIds.includes(productId);
         });
+        
         setBids(sellerBids);
       } else {
         toast.error('Failed to fetch bids');
@@ -125,16 +133,16 @@ const PutABid = () => {
         // Fetch detailed information about each bidder
         const bidderPromises = bid.bidder.map(async (bidderInfo) => {
           try {
-            // Make sure we're using the correct user ID path
-            const userID = bidderInfo.userID;
-            if (!userID) {
+            // Make sure we have a valid user ID
+            const userId = bidderInfo.userID?._id || bidderInfo.userID;
+            
+            if (!userId) {
               return { ...bidderInfo, userDetails: null };
             }
             
-            const response = await axios.get(`${SummaryApi.allUsers.url}/${userID}`);
+            const response = await axios.get(`${SummaryApi.allUser.url}/${userId}`);
             
             if (response.data.success) {
-              // Make sure we're properly extracting user data
               return {
                 ...bidderInfo,
                 userDetails: response.data.data
@@ -202,9 +210,12 @@ const PutABid = () => {
 
   // Render bidder details view
   const renderBidderDetailsView = () => {
+    if (!selectedBid) return null;
+    
     // Get product details for the selected bid
-    const product = getProductDetails(selectedBid.productID._id);
-    console.log('Product:', product);
+    const productId = selectedBid.productID?._id || selectedBid.productID;
+    const product = getProductDetails(productId);
+    
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center mb-6">
@@ -220,11 +231,10 @@ const PutABid = () => {
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="flex flex-col md:flex-row">
             <div className="md:w-1/3 relative">
-              {/* FIXED: Correct path to product images */}
               {product.productImage && product.productImage.length > 0 ? (
                 <img 
                   src={product.productImage[0]} 
-                  alt={selectedBid.productID.productName}
+                  alt={selectedBid.productID?.productName || 'Product'}
                   className="w-full h-64 object-cover"
                 />
               ) : (
@@ -239,7 +249,9 @@ const PutABid = () => {
               </div>
             </div>
             <div className="md:w-2/3 p-6">
-              <h2 className="text-xl font-bold mb-2">{selectedBid.productID.productName}</h2>
+              <h2 className="text-xl font-bold mb-2">
+                {selectedBid.productID?.productName || product.productName || 'Unknown Product'}
+              </h2>
               <p className="text-gray-700 mb-4">
                 {product.description || 'No description available'}
               </p>
@@ -273,43 +285,48 @@ const PutABid = () => {
         <h3 className="text-xl font-bold mt-8 mb-4">Bidders List</h3>
         {bidderDetails.length > 0 ? (
           <div className="space-y-4">
-            {bidderDetails.sort((a, b) => b.bidAmount - a.bidAmount).map((bidder, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                      <span className="text-blue-600 font-medium">
-                        {/* FIXED: Better handling of user initial */}
-                        {bidder.userID.name.charAt(0) || 
-                         (bidder.userID.name?.charAt(0)) || 'U'}
-                      </span>
+            {bidderDetails.sort((a, b) => b.bidAmount - a.bidAmount).map((bidder, index) => {
+              // Safely handle user information
+              const bidderUserId = bidder.userID || {};
+              const bidderUserDetails = bidder.userDetails || {};
+              
+              // Get the best available name
+              const bidderName = bidderUserDetails.name || 
+                  (bidderUserDetails.firstName && bidderUserDetails.lastName ? 
+                   `${bidderUserDetails.firstName} ${bidderUserDetails.lastName}` : 
+                   (bidderUserId.name || 'Anonymous Bidder'));
+              
+              // Get initial for avatar
+              const nameInitial = (bidderName && bidderName.charAt(0)) || 'U';
+              
+              // Get email
+              const email = bidderUserDetails.email || bidderUserId.email || 'No email available';
+              
+              return (
+                <div key={index} className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                        <span className="text-blue-600 font-medium">{nameInitial}</span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{bidderName}</h4>
+                        <p className="text-sm text-gray-600">{email}</p>
+                      </div>
                     </div>
-                    <div>
-                      {/* FIXED: Better handling of user name display */}
-                      <h4 className="font-medium">
-                        {bidder.userDetails?.name || 
-                         (bidder.userDetails?.firstName && bidder.userDetails?.lastName ? 
-                          `${bidder.userDetails.firstName} ${bidder.userDetails.lastName}` : 
-                          bidder.userID.name || 'Anonymous Bidder')}
-                      </h4>
-                      {/* FIXED: Display email properly */}
-                      <p className="text-sm text-gray-600">
-                        {bidder.userID.email || 'No email available'}
-                      </p>
+                    <div className="text-right">
+                      <div className="text-green-600 font-bold text-lg">${bidder.bidAmount}</div>
+                      <div className="text-sm text-gray-500">{formatDate(bidder.bidDate)}</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-green-600 font-bold text-lg">${bidder.bidAmount}</div>
-                    <div className="text-sm text-gray-500">{formatDate(bidder.bidDate)}</div>
-                  </div>
-                </div>
-                {bidder.message && (
-                  <div className="mt-3 bg-gray-50 p-3 rounded-md text-gray-700 text-sm italic">
-                    "{bidder.message}"
-                  </div>
-                )}
-              </div>  
-            ))}
+                  {bidder.message && (
+                    <div className="mt-3 bg-gray-50 p-3 rounded-md text-gray-700 text-sm italic">
+                      "{bidder.message}"
+                    </div>
+                  )}
+                </div>  
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-10 bg-gray-50 rounded-lg">
@@ -438,10 +455,18 @@ const PutABid = () => {
         {bids.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {bids.map((bid) => {
+              // Get product ID safely
+              const productId = bid.productID?._id || bid.productID;
+              
               // Get corresponding product details for images
-              const product = getProductDetails(bid.productID._id);
+              const product = getProductDetails(productId);
+              
+              // Other bid details
               const isActive = new Date(bid.closeDate) > new Date();
               const highestBid = getHighestBid(bid.bidder);
+              
+              // Get product name safely
+              const productName = bid.productID?.productName || product.productName || 'Unknown Product';
               
               return (
                 <div 
@@ -450,11 +475,10 @@ const PutABid = () => {
                   onClick={() => viewBidDetails(bid)}
                 >
                   <div className="relative">
-                    {/* FIXED: Correct path to product images */}
                     {product.productImage && product.productImage.length > 0 ? (
                       <img 
                         src={product.productImage[0]} 
-                        alt={bid.productID.productName}
+                        alt={productName}
                         className="w-full h-48 object-cover"
                       />
                     ) : (
@@ -472,7 +496,7 @@ const PutABid = () => {
                   </div>
                   
                   <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-1 truncate">{bid.productID.productName}</h3>
+                    <h3 className="font-semibold text-lg mb-1 truncate">{productName}</h3>
                     <div className="flex justify-between items-end mb-2">
                       <div>
                         <p className="text-gray-500 text-sm">Starting at</p>

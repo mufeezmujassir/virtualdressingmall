@@ -227,6 +227,9 @@ const SummaryApi = {
    ,getBidIncomeStats:{
     url:`${backendDomin}/api/bid-income-stats`,
     method:'GET'
+   },getSellerComment:{
+    url:`${backendDomin}/shop/:shopId`,
+    method:'GET'
    }
 }
 

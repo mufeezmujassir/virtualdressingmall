@@ -1,21 +1,48 @@
-const Bid=require('../../models/bidModel')
+const Bid = require('../../models/bidModel');
 
-const getBidbyspecific=async(req,res)=>{
-    try {
-        const bids = await Bid.find()
-          .populate('productID')
-          .populate('bidder.userID')
-          .exec();
+const getBidbyspecific = async (req, res) => {
+  try {
+    // Get user ID from request if available (for specific user bids)
+    const userId = req.query.userId || req.user?._id;
+
+    // Query to find bids
+    const query = userId ? 
+      { 'ShopID': userId } : // If userId provided, filter by shop/seller ID
+      {};                    // Otherwise get all bids
     
-        if (bids.length > 0) {
-          return res.json({ success: true, data: bids });
-        } else {
-          return res.status(404).json({ success: false, message: 'No bids found' });
+    const bids = await Bid.find(query)
+      .populate({
+        path: 'productID',
+        populate: { 
+          path: 'ShopID',
+          select: 'name email _id'
         }
-      } catch (err) {
-        console.error(err);
-        return res.status(500).json({ success: false, message: 'Server error' });
-      }
-}
+      })
+      .populate('bidder.userID', 'name email _id')
+      .sort({ createdAt: -1 })
+      .exec();
 
-module.exports=getBidbyspecific
+    if (bids.length > 0) {
+      return res.json({ 
+        success: true, 
+        message: userId ? "Seller's bids retrieved successfully" : "All bids retrieved successfully",
+        data: bids 
+      });
+    } else {
+      return res.json({ 
+        success: true, 
+        message: userId ? "No bids found for this seller" : "No bids found",
+        data: [] 
+      });
+    }
+  } catch (err) {
+    console.error('Error in getBidbyspecific:', err);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error while retrieving bids',
+      error: err.message
+    });
+  }
+};
+
+module.exports = getBidbyspecific;

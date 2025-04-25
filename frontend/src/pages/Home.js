@@ -8,7 +8,10 @@ const Home = () => {
     return <div>
         <CategoryList/>
         <BannerProduct/>
-        
+        <HorizontalCardProduct 
+                category="Tops & Upper Wear"
+                heading="Featured Tops & Upper Wear"
+            />
         
         </div>
         
