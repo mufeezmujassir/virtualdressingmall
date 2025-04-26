@@ -24,8 +24,11 @@ const Profile = () => {
     });
     const [loading, setLoading] = useState(false);
     const [orderHistory, setOrderHistory] = useState([]);
+    const [fetchingOrders, setFetchingOrders] = useState(false);
     const [reservationHistory, setReservationHistory] = useState([]);
     const [fetchingReservations, setFetchingReservations] = useState(false);
+
+    const backendDomain = "http://localhost:8080/api"; // Add your backend domain
 
     useEffect(() => {
         if (!user?._id || !token) {
@@ -39,10 +42,14 @@ const Profile = () => {
             address: user.address || '',
             profilePic: user.profilePic || ''
         });
-        
-        // Fetch order history (you can implement this later)
-        // fetchOrderHistory();
     }, [user, token, navigate]);
+
+    // Fetch order history when the orders tab is selected
+    useEffect(() => {
+        if (activeTab === 'orders' && user?._id && token) {
+            fetchOrderHistory();
+        }
+    }, [activeTab, user, token]);
 
     // Fetch reservation history when the reservations tab is selected
     useEffect(() => {
@@ -50,6 +57,33 @@ const Profile = () => {
             fetchReservationHistory();
         }
     }, [activeTab, user, token]);
+
+    const fetchOrderHistory = async () => {
+        setFetchingOrders(true);
+        try {
+            // Get all orders and filter by current user
+            const response = await axios.get(`${backendDomain}/get-all-orders`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                // Filter orders for the current user
+                const userOrders = response.data.data.filter(
+                    order => order.userID?._id === user._id
+                );
+                setOrderHistory(userOrders);
+            } else {
+                toast.error('Failed to fetch order history');
+            }
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+            toast.error(error.response?.data?.message || 'Failed to fetch order history');
+        } finally {
+            setFetchingOrders(false);
+        }
+    };
 
     const fetchReservationHistory = async () => {
         setFetchingReservations(true);
@@ -130,6 +164,25 @@ const Profile = () => {
             }));
         };
         reader.readAsDataURL(file);
+    };
+
+    const viewOrderDetails = async (orderId) => {
+        try {
+            // Navigate to order detail page or show modal with order details
+            const response = await axios.get(`${backendDomain}/get-order-details/${orderId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                // You could implement a modal here to show full order details
+                // or navigate to a dedicated order details page
+                toast.info(`Viewing details for order ${orderId}`);
+            }
+        } catch (error) {
+            toast.error('Failed to fetch order details');
+        }
     };
 
     if (!user?._id || !token) {
@@ -357,14 +410,94 @@ const Profile = () => {
         </div>
     );
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
     const renderOrdersContent = () => (
         <div className="bg-white rounded-xl shadow-xl p-6">
             <h3 className="text-xl font-bold mb-6 text-gray-800">Order History</h3>
             
-            {orderHistory && orderHistory.length > 0 ? (
-                <div className="space-y-4">
-                    {/* Render order history here */}
-                    <p>Your order history will appear here</p>
+            {fetchingOrders ? (
+                <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading your orders...</p>
+                </div>
+            ) : orderHistory && orderHistory.length > 0 ? (
+                <div className="space-y-6">
+                    {orderHistory.map((order) => (
+                        <div key={order._id} className="border rounded-lg overflow-hidden bg-gray-50 hover:shadow-md transition-shadow">
+                            <div className="bg-gray-100 p-4 border-b">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <span className="text-sm font-medium text-gray-500">Order ID</span>
+                                        <h4 className="font-semibold">{order._id.substring(0, 8)}...</h4>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-sm font-medium text-gray-500">Date</span>
+                                        <p className="font-semibold">{formatDate(order.createdAt)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="p-4 flex flex-wrap md:flex-nowrap">
+                                {/* Product Details */}
+                                <div className="w-full md:w-3/4">
+                                    <h4 className="font-bold text-lg mb-2">{order.productID?.productName || 'Product Name Unavailable'}</h4>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm text-gray-500">Size</p>
+                                            <p className="font-medium">{order.Size}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Quantity</p>
+                                            <p className="font-medium">{order.Quantity}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Total Amount</p>
+                                            <p className="font-medium">${order.TotalAmount.toFixed(2)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500">Shipping Address</p>
+                                            <p className="font-medium">{order.Address}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="mt-4 pt-3 border-t">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="text-sm text-gray-500">Order Status</p>
+                                                <p className={`font-semibold ${
+                                                    order.Status === 'Delivered' 
+                                                        ? 'text-green-600' 
+                                                        : order.Status === 'Pending'
+                                                            ? 'text-yellow-600'
+                                                            : order.Status === 'Cancelled'
+                                                                ? 'text-red-600'
+                                                                : 'text-blue-600'
+                                                }`}>
+                                                    {order.Status}
+                                                </p>
+                                            </div>
+                                            
+                                            <button
+                                                onClick={() => viewOrderDetails(order._id)}
+                                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                            >
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             ) : (
                 <div className="text-center py-12">
@@ -383,15 +516,6 @@ const Profile = () => {
             )}
         </div>
     );
-
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
 
     const renderReservationsContent = () => (
         <div className="bg-white rounded-xl shadow-xl p-6">
@@ -472,7 +596,6 @@ const Profile = () => {
                                                     {reservation.ValidateReservation || 'Pending'}
                                                 </p>
                                             </div>
-                                            
                                         </div>
                                     </div>
                                 </div>
@@ -525,35 +648,35 @@ const Profile = () => {
                         <button
                             className={`py-3 px-6 font-medium transition-colors whitespace-nowrap ${
                                 activeTab === 'orders' 
-                                    ? 'text-red-600 border-b-2 border-red-600' 
-                                    : 'text-gray-600 hover:text-red-500'
-                            }`}
-                            onClick={() => setActiveTab('orders')}
-                        >
-                            Order History
-                        </button>
-                        <button
-                            className={`py-3 px-6 font-medium transition-colors whitespace-nowrap ${
-                                activeTab === 'reservations' 
-                                    ? 'text-red-600 border-b-2 border-red-600' 
-                                    : 'text-gray-600 hover:text-red-500'
-                            }`}
-                            onClick={() => setActiveTab('reservations')}
-                        >
-                            Reservation History
-                        </button>
-                    </div>
-                </div>
-                
-                {/* Tab Content */}
-                <div className="max-w-5xl mx-auto">
-                    {activeTab === 'profile' ? renderProfileContent() : 
-                     activeTab === 'orders' ? renderOrdersContent() : 
-                     renderReservationsContent()}
+                                ? 'text-red-600 border-b-2 border-red-600' 
+                                : 'text-gray-600 hover:text-red-500'
+                        }`}
+                        onClick={() => setActiveTab('orders')}
+                    >
+                        <FaShoppingBag className="inline-block mr-2" /> My Orders
+                    </button>
+                    <button
+                        className={`py-3 px-6 font-medium transition-colors whitespace-nowrap ${
+                            activeTab === 'reservations' 
+                                ? 'text-red-600 border-b-2 border-red-600' 
+                                : 'text-gray-600 hover:text-red-500'
+                        }`}
+                        onClick={() => setActiveTab('reservations')}
+                    >
+                        <FaCalendarAlt className="inline-block mr-2" /> My Reservations
+                    </button>
                 </div>
             </div>
+            
+            {/* Tab Content */}
+            <div className="max-w-5xl mx-auto">
+                {activeTab === 'profile' && renderProfileContent()}
+                {activeTab === 'orders' && renderOrdersContent()}
+                {activeTab === 'reservations' && renderReservationsContent()}
+            </div>
         </div>
-    );
+    </div>
+);
 };
 
 export default Profile;

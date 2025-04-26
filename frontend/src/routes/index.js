@@ -39,7 +39,7 @@ import BidInncomeDashboard from '../components/BidincomeDashboard'
 import SellerDashboardReview from '../pages/SellerDashboardReview'
 import AdminUserDetails from '../components/adminusermanagement'
 import ProductManagement from '../components/productmanagement'
-
+import OrderManagement from '../components/ordermanagement'
 const router = createBrowserRouter([
  {
      path:"/",
@@ -114,6 +114,10 @@ const router = createBrowserRouter([
                  ,{
                      path:"product-management",
                      element:<ProductManagement/>
+                 }
+                    ,{
+                     path:"order-management",
+                     element:<OrderManagement/> 
                  }
              ]
          },

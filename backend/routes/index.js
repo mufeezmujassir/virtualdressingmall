@@ -53,7 +53,21 @@ const {
     assignRole,
   } = require('../controller/admin/userController');
 
-  const productController = require('../controller/admin/productController');
+const{getAllOrders,
+    getOrderDetail,
+    generateOrderReport}=require('../controller/admin/ordermanagementcontroller')
+
+
+
+
+const productController = require('../controller/admin/productController');
+
+
+
+
+router.get('/get-all-orders', getAllOrders);
+router.get('/get-order-details/:orderId', getOrderDetail);
+router.get('/generate-order-report', generateOrderReport);
 
 
 

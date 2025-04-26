@@ -75,9 +75,7 @@ const Header = () => {
                   </Link>
                 </li>
                 <li>  
-                  <Link to="/shop-product" className="block py-2 px-3 text-white hover:text-black">
-                    Products
-                  </Link>
+                 
                 </li>
               </ul>
             </div>
@@ -99,14 +97,10 @@ const Header = () => {
             {/* Navigation Links */}
             <div className={`${isOpen ? "block" : "hidden"} w-full md:flex md:w-auto`}>
               <ul className="flex flex-col md:flex-row md:space-x-8 font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-red-600 md:mt-0 md:border-0">
-                <li>
-                  <Link to="/admin-panel/all-users" className="block py-2 px-3 text-white hover:text-black">
-                    Users
-                  </Link>
-                </li>
+                
                 <li>
                   <Link to="/admin-panel/all-products" className="block py-2 px-3 text-white hover:text-black">
-                    Products
+                    Admin Panel
                   </Link>
                 </li>
               </ul>

@@ -14,9 +14,10 @@ const PutABid = () => {
   const [products, setProducts] = useState([]);
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showBidForm, setShowBidForm] = useState(false); // Default to hidden
+  const [showBidForm, setShowBidForm] = useState(false);
   const [selectedBid, setSelectedBid] = useState(null);
   const [bidderDetails, setBidderDetails] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0); // Add refresh key for forcing re-render
 
   // Fetch products for the logged-in user
   const fetchAllProduct = async () => {
@@ -91,7 +92,7 @@ const PutABid = () => {
     if (products.length > 0) {
       fetchAllBids();
     }
-  }, [products]);
+  }, [products, refreshKey]); // Add refreshKey to dependencies
 
   // Submit bid data
   const handleBidSubmit = async (formData) => {
@@ -109,15 +110,45 @@ const PutABid = () => {
 
       if (response.data.success) {
         toast.success('Bid created successfully!');
-        reset();
-        fetchAllBids(); // Refresh the bids
-        setShowBidForm(false); // Hide form after submission
+        reset(); // Reset form data
+        setShowBidForm(false); // Hide the form
+        setRefreshKey(prevKey => prevKey + 1); // Force re-fetch of bids
+        
+        // If we have the created bid details in the response, select it
+        if (response.data.data) {
+          setTimeout(() => {
+            const createdBid = response.data.data;
+            // Fetch the newly created bid details after a brief delay
+            fetchBidDetailsAfterCreation(createdBid._id || createdBid);
+          }, 500); // Small delay to ensure the database has updated
+        }
       } else {
         toast.error(response.data.message || 'Error creating bid');
       }
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || 'Error submitting bid');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch newly created bid details
+  const fetchBidDetailsAfterCreation = async (bidId) => {
+    try {
+      setLoading(true);
+      
+      // Get the specific bid
+      const response = await axios.get(`${SummaryApi.getBidbyspecific.url}/${bidId}`);
+      
+      if (response.data.success) {
+        const bid = response.data.data;
+        setSelectedBid(bid);
+        setBidderDetails([]); // No bidders yet for a new bid
+        toast.info(`View details for your new bid: ${bid.productID?.productName || 'Product'}`);
+      }
+    } catch (error) {
+      console.error('Error fetching newly created bid:', error);
     } finally {
       setLoading(false);
     }
@@ -177,6 +208,10 @@ const PutABid = () => {
   // Function to toggle bid form visibility
   const toggleBidForm = () => {
     setShowBidForm(!showBidForm);
+    if (!showBidForm) {
+      // Reset form when opening
+      reset();
+    }
   };
 
   const formatDate = (dateString) => {
@@ -264,7 +299,7 @@ const PutABid = () => {
                 <div>
                   <span className="text-gray-600 text-sm">Current Highest Bid</span>
                   <p className="font-bold text-lg text-green-600">
-                    {selectedBid.bidder.length > 0 ? 
+                    {selectedBid.bidder && selectedBid.bidder.length > 0 ? 
                       `Rs.${getHighestBid(selectedBid.bidder)}` : 
                       'No bids yet'}
                   </p>
@@ -275,7 +310,7 @@ const PutABid = () => {
                 </div>
                 <div>
                   <span className="text-gray-600 text-sm">Total Bids</span>
-                  <p className="font-medium">{selectedBid.bidder.length}</p>
+                  <p className="font-medium">{selectedBid.bidder ? selectedBid.bidder.length : 0}</p>
                 </div>
               </div>
             </div>
@@ -316,7 +351,6 @@ const PutABid = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-green-600 font-bold text-lg">Rs.{bidder.bidAmount}</div>
-                      
                     </div>
                   </div>
                   {bidder.message && (
@@ -387,15 +421,20 @@ const PutABid = () => {
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">Rs.</span>
                 <input
-                  type="number"
-                  step="0.01"
-                  {...register('startPrice', { 
-                    required: 'Start price is required',
-                    min: { value: 0, message: 'Price must be greater than 0' }
-                  })}
-                  className="w-full border border-gray-300 pl-8 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={loading}
-                  placeholder="0.00"
+                    type="number"
+                    step="0.01"
+                    {...register('startPrice', { 
+                      required: 'Start price is required',
+                      min: { value: 0, message: 'Price must be greater than 0' }
+                    })}
+                    onInput={(e) => {
+                      if (e.target.value.length > 1 && e.target.value.startsWith('0') && !e.target.value.startsWith('0.')) {
+                        e.target.value = e.target.value.replace(/^0+/, '');
+                      }
+                    }}
+                    className="w-full border border-gray-300 pl-8 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={loading}
+                    placeholder="0.00"
                 />
               </div>
               {errors.startPrice && <p className="text-red-500 text-sm mt-1">{errors.startPrice.message}</p>}
@@ -505,7 +544,7 @@ const PutABid = () => {
                       <div className="text-right">
                         <p className="text-gray-500 text-sm">Highest bid</p>
                         <p className="font-medium text-green-600">
-                          {bid.bidder.length > 0 ? `Rs.${highestBid}` : 'No bids'}
+                          {bid.bidder && bid.bidder.length > 0 ? `Rs.${highestBid}` : 'No bids'}
                         </p>
                       </div>
                     </div>
@@ -515,7 +554,7 @@ const PutABid = () => {
                         Ends {formatDate(bid.closeDate)}
                       </div>
                       <div className="bg-blue-50 text-blue-700 text-sm font-medium py-1 px-2 rounded">
-                        {bid.bidder.length} bid{bid.bidder.length !== 1 ? 's' : ''}
+                        {bid.bidder ? bid.bidder.length : 0} bid{bid.bidder && bid.bidder.length !== 1 ? 's' : ''}
                       </div>
                     </div>
                   </div>
