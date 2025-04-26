@@ -45,6 +45,54 @@ const orderIncomeReport=require('../controller/finance/orderIncomeReport')
 const getReservationReview=require('../controller/finance/getReservationRevenueByShop')
 const { processBidCloseouts, getBidIncomeStats } = require('../controller/finance/bidIncomeController');
 const { addComment, getComments, toggleCommentLike, deleteComment } = require('../controller/comment/commentController');
+const {
+    getAllUsers,
+    
+    toggleBlockUser,
+    deleteUser,
+    assignRole,
+  } = require('../controller/admin/userController');
+
+
+const{getAllProducts,
+    getProductById,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    updateInventory} = require('../controller/admin/productmanagement')
+
+router.get('/get-all-products', getAllProducts);
+router.get('/get-product-by-id', getProductById);
+router.put('/update-product-details', updateProduct);
+router.delete('/delete-product', deleteProduct);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+router.get('/get-all-users', getAllUsers);
+
+router.post('/toggle-block-user/:userId', toggleBlockUser);
+router.post('/add-product', addProduct);
+router.delete('/delete-user/:userId', deleteUser);
+router.post('/assign-role/:userId', assignRole);
+
 
 
 router.post('/process-closeouts', processBidCloseouts);

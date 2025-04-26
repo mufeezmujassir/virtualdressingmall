@@ -231,6 +231,45 @@ const SummaryApi = {
     url:`${backendDomin}/shop/:shopId`,
     method:'GET'
    }
+   ,getAllUserDetails:{
+    url:`${backendDomin}/api/get-all-users`,
+    method:'GET'
+   }
+   ,getToggleUserStatus:{
+    url:`${backendDomin}/api/toggle-block-user/:userId`,
+    method:'POST'
+   }
+   ,deleteUser:{
+    url:`${backendDomin}/api/delete-user/:userId`,
+    method:'DELETE'
+   }
+    ,assignUserRole:{
+     url:`${backendDomin}/api/assign-role/:userId`,
+     method:'POST'
+    },
+    exportuser:{
+        url:`${backendDomin}/api/export-users`,
+        method:'GET'
+    },
+    getAllShopDetails:{
+        url:`${backendDomin}/api/get-all-shop-details`,
+        method:'GET'
+    }, 
+    getProductdetailsbyID:{
+        url:`${backendDomin}/api/get-product-by-id`,
+        method:'GET'
+    },
+    updateProductdetails:{
+        url:`${backendDomin}/api/update-product-details`,
+        method:'PUT'
+    },
+    deleteProductdetails:{
+        url:`${backendDomin}/api/delete-product`,
+        method:'DELETE' 
+    },
+
+
+
 }
 
 

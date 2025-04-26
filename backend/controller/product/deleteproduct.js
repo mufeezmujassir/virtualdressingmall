@@ -4,6 +4,9 @@ const orderModel = require('../../models/orderModel'); // Assuming you have this
 const reservationModel = require('../../models/reservationModel'); // Reservation model
 const CartModel = require('../../models/cartProduct');
 const PaymentModel= require('../../models/paymentModel');
+const bidModel = require('../../models/bidModel'); 
+const orderProductModel = require('../../models/orderModel'); // Assuming you have this model
+const winningbidmodel= require('../../models/winningBidModel'); // Assuming you have this model
 async function deleteProductController(req, res) {
     try {
         const { _id } = req.body;
@@ -28,7 +31,9 @@ async function deleteProductController(req, res) {
         await reservationModel.deleteMany({ productID: _id });
         await CartModel.deleteMany({ productID: _id });
         await PaymentModel.deleteMany({ productID: _id });
-
+        await bidModel.deleteMany({ productID: _id });
+        await orderProductModel.deleteMany({ productID: _id });
+        await winningbidmodel.deleteMany({ productID: _id });
         res.json({
             message: "Product and related data (orders, reservations) deleted successfully",
             error: false,

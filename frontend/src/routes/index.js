@@ -37,10 +37,8 @@ import IncomeReportDashboard from '../components/IncomeReportDashboard'
 import ReservationRevenue from '../components/reservationRevenue'
 import BidInncomeDashboard from '../components/BidincomeDashboard'
 import SellerDashboardReview from '../pages/SellerDashboardReview'
-
-
-
-
+import AdminUserDetails from '../components/adminusermanagement'
+import ProductManagement from '../components/productmanagement'
 
 const router = createBrowserRouter([
  {
@@ -104,13 +102,18 @@ const router = createBrowserRouter([
              path:"admin-panel",
              element:<AdminPanel/>,
              children:[
-                 {
-                     path:"all-users",
-                     element:<AllUsers/>
-                 },
+                 
                  {
                      path:"all-products",
                      element:<AllProducts/>
+                 },
+                 {
+                     path:"admin-user-details",
+                     element:<AdminUserDetails/>
+                 }
+                 ,{
+                     path:"product-management",
+                     element:<ProductManagement/>
                  }
              ]
          },

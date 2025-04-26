@@ -563,7 +563,7 @@ const HorizontalCardProduct = ({ category, heading }) => {
                     
                     {/* Product Category and Seller */}
                     <div className="p-4 border-b">
-                        <p className="text-gray-600">Tops & Upper Wear</p>
+                        <p className="text-gray-600">{category}</p>
                         <p className="text-blue-600 font-medium cursor-pointer hover:underline" 
                            onClick={(e) => {
                                e.stopPropagation();
@@ -580,7 +580,7 @@ const HorizontalCardProduct = ({ category, heading }) => {
                             {selectedProductDetails?.ShopID && 
                                 (typeof selectedProductDetails.ShopID === 'object' 
                                     ? (selectedProductDetails.ShopID.name || 'Seller') 
-                                    : 'prasad fashion square')
+                                    : 'prasad fashion ')
                             }
                         </p>
                     </div>
@@ -693,7 +693,6 @@ const HorizontalCardProduct = ({ category, heading }) => {
                                     <h2 className="font-semibold text-2xl text-gray-900">{product?.productName}</h2>
                                     <p className="text-lg text-gray-500">{product?.category}</p>
                                     <div className="flex items-center gap-4 mt-2">
-                                        <p className="text-blue-600 font-semibold text-2xl">{displayINRCurrency(product?.sellingPrice || product?.price)}</p>
                                         {product?.price > (product?.sellingPrice || product?.price) && (
                                             <>
                                                 <p className="text-gray-500 line-through text-lg">{displayINRCurrency(product?.price)}</p>

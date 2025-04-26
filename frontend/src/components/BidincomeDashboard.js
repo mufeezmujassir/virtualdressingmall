@@ -47,6 +47,7 @@ const BidIncomeTracker = ({ shopId }) => {
   const [processingBids, setProcessingBids] = useState(false);
   const [viewMode, setViewMode] = useState('chart');
   const [notification, setNotification] = useState(null);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   // Fetch bid income data
   const fetchBidData = async () => {
@@ -54,7 +55,7 @@ const BidIncomeTracker = ({ shopId }) => {
       setLoading(true);
       const response = await axios.get(SummaryApi.getBidIncomeStats.url, {
         params: {
-          shopId:user._id,
+          shopId: user._id,
           startDate: dateRange.startDate,
           endDate: dateRange.endDate
         }
@@ -102,6 +103,11 @@ const BidIncomeTracker = ({ shopId }) => {
     }
   };
 
+  // Toggle export dropdown
+  const toggleExportDropdown = () => {
+    setShowExportDropdown(!showExportDropdown);
+  };
+
   // Export report
   const exportReport = (format) => {
     try {
@@ -121,10 +127,11 @@ const BidIncomeTracker = ({ shopId }) => {
         endDate: formattedEndDate
       }).toString();
       
-      const url = SummaryApi.getBidIncomeStats.url;
-      window.open(`${url}?${params}`, '_blank');
+      const url = `${SummaryApi.getBidIncomeStats.url}?${params}`;
+      window.open(url, '_blank');
       
       toast.success(`Report export initiated as ${format.toUpperCase()}`);
+      setShowExportDropdown(false);
     } catch (err) {
       console.error(`Error exporting ${format}:`, err);
       toast.error(`Error exporting ${format} report`);
@@ -132,10 +139,10 @@ const BidIncomeTracker = ({ shopId }) => {
   };
 
   useEffect(() => {
-    if (shopId) {
+    if (user?._id) {
       fetchBidData();
     }
-  }, [shopId, dateRange]);
+  }, [user]);
 
   // Clear notification after 5 seconds
   useEffect(() => {
@@ -146,6 +153,18 @@ const BidIncomeTracker = ({ shopId }) => {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (showExportDropdown && !event.target.closest('.export-dropdown-container')) {
+        setShowExportDropdown(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showExportDropdown]);
 
   // Prepare chart data
   const prepareChartData = () => {
@@ -274,28 +293,33 @@ const BidIncomeTracker = ({ shopId }) => {
           >
             {processingBids ? 'Processing...' : 'Process Expired Bids'}
           </button>
-          <div className="relative inline-block">
+          
+          {/* Export dropdown - Fixed */}
+          <div className="export-dropdown-container relative inline-block">
             <button 
               className="px-4 py-2 rounded-md bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+              onClick={toggleExportDropdown}
             >
               Export Report
             </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-10">
-              <div className="py-1">
-                <button 
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
-                  onClick={() => exportReport('pdf')}
-                >
-                  PDF Format
-                </button>
-                <button 
-                  className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
-                  onClick={() => exportReport('excel')}
-                >
-                  Excel Format
-                </button>
+            {showExportDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                <div className="py-1">
+                  <button 
+                    className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    onClick={() => exportReport('pdf')}
+                  >
+                    PDF Format
+                  </button>
+                  <button 
+                    className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    onClick={() => exportReport('excel')}
+                  >
+                    Excel Format
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -350,13 +374,13 @@ const BidIncomeTracker = ({ shopId }) => {
               <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
                 <h3 className="text-sm font-medium text-gray-500">Total Revenue</h3>
                 <p className="text-2xl font-bold text-gray-800 mt-2">
-                  ${parseFloat(summary.totalRevenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  LKR {parseFloat(summary.totalRevenue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
                 <h3 className="text-sm font-medium text-gray-500">Total Net Profit</h3>
                 <p className="text-2xl font-bold text-gray-800 mt-2">
-                  ${parseFloat(summary.totalProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  LKR {parseFloat(summary.totalProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
@@ -404,7 +428,7 @@ const BidIncomeTracker = ({ shopId }) => {
                           beginAtZero: true,
                           title: {
                             display: true,
-                            text: 'Amount ($)'
+                            text: 'Amount (LKR)'
                           }
                         },
                         x: {
@@ -437,7 +461,7 @@ const BidIncomeTracker = ({ shopId }) => {
                               label: (context) => {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                return `${label}: $${value.toFixed(2)}`;
+                                return `${label}: LKR ${value.toFixed(2)}`;
                               }
                             }
                           }
@@ -460,7 +484,7 @@ const BidIncomeTracker = ({ shopId }) => {
                             beginAtZero: true,
                             title: {
                               display: true,
-                              text: 'Amount ($)'
+                              text: 'Amount (LKR)'
                             }
                           }
                         }
@@ -500,9 +524,9 @@ const BidIncomeTracker = ({ shopId }) => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.productName}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(new Date(item.closeDate), 'MMM dd, yyyy')}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.buyerName}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.startPrice.toFixed(2)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.winningBidAmount.toFixed(2)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.netProfit.toFixed(2)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">LKR {item.startPrice.toFixed(2)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">LKR {item.winningBidAmount.toFixed(2)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">LKR {item.netProfit.toFixed(2)}</td>
                           <td className={`px-6 py-4 whitespace-nowrap text-sm ${parseFloat(profitMargin) < 0 ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
                             {profitMargin}%
                           </td>
@@ -537,7 +561,7 @@ const BidIncomeTracker = ({ shopId }) => {
                         {processResults.processedBids.slice(0, 5).map((bid, index) => (
                           <li key={index} className="py-1">
                             {bid.productName} - {bid.winner !== 'No bidders' 
-                              ? `Won by ${bid.winner} ($${bid.winningAmount.toFixed(2)})` 
+                              ? `Won by ${bid.winner} (LKR ${bid.winningAmount.toFixed(2)})` 
                               : 'No bidders'}
                           </li>
                         ))}
