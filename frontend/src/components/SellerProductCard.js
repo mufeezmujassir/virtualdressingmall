@@ -41,6 +41,7 @@ const SellerProductCard = ({ data, fetchdata }) => {
                 {/* Product Name */}
                 <h1 className='text-ellipsis line-clamp-2 text-center'><b>ProductName: </b>{data.productName}</h1>
                 <h1 className='text-ellipsis line-clamp-2 text-center'><b>category:</b>{data.category}</h1>
+                <h1 className='text-ellipsis line-clamp-2 text-center'><b>Status:</b>{data.status}</h1>
                 {/* Price & Edit Button */}
                 <div className='flex items-center justify-between w-full mt-2'>
                     <p className='font-semibold'>

@@ -15,6 +15,7 @@ const searchProduct = async (req, res) => {
 
         // Perform a case-insensitive search across multiple fields
         const products = await productModel.find({
+           
             $or: [
                 { productName: { $regex: searchQuery, $options: 'i' } },
                 { brandName: { $regex: searchQuery, $options: 'i' } },

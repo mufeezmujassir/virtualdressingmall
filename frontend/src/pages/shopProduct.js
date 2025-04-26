@@ -21,7 +21,7 @@ const ShopProduct = () => {
 
       if (Array.isArray(dataResponse?.data)) {
         // Filter by ShopID
-        const shopProducts = dataResponse.data.filter(product => product.ShopID._id === shopId);
+        const shopProducts = dataResponse.data.filter(product => product.ShopID._id === shopId && product.status === 'approved');
         setAllProduct(shopProducts);
         setFilteredProduct(shopProducts);
       } else {

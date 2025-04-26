@@ -493,7 +493,7 @@ const HorizontalCardProduct = ({ category, heading }) => {
     const handleShowProductDetails = async (productId) => {
         try {
             // First check if we already have the product in our data
-            const productInData = data.find(p => p._id === productId);
+            const productInData = data.find(p => p._id === productId && p.status==='active');
             
             if (productInData) {
                 setSelectedProductDetails(productInData);
@@ -686,7 +686,7 @@ const HorizontalCardProduct = ({ category, heading }) => {
                             </div>
                         ))
                     ) : (
-                        data.map((product) => (
+                        data.filter(product => product.status === 'approved').map((product) => (
                             <div key={product?._id} className="w-full max-w-4xl bg-white rounded-lg shadow-lg overflow-hidden">
                                 {/* Product Header */}
                                 <div className="p-4">
@@ -1025,7 +1025,7 @@ const HorizontalCardProduct = ({ category, heading }) => {
                         </div>
                     ))
                 ) : (
-                    data.map((product) => (
+                    data.filter(product => product.status === 'approved').map((product) => (
                         <div 
                             key={product?._id}
                             className='min-w-[280px] max-w-[280px] bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow'

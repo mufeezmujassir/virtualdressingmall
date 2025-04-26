@@ -12,6 +12,11 @@ const productSchema = new mongoose.Schema({
     subCategory : String,
     description : String,
      DiscoutPercentage : Number,
+     status: { 
+        type: String, 
+        enum: ['pending', 'approved', 'rejected'], 
+        default: 'pending' // <-- Added for approval flow
+    },
     Size:[{
         size:String,
         quantity:Number,

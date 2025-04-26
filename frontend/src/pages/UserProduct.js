@@ -18,12 +18,15 @@ const UserProduct = () => {
     try {
       const response = await fetch(SummaryApi.allProduct.url);
       const dataResponse = await response.json();
-
+  
       console.log("Product Data:", dataResponse);
-
+  
       if (Array.isArray(dataResponse?.data)) {
-        setAllProduct(dataResponse.data);
-        setFilteredProduct(dataResponse.data); // Initially show all products
+        // Filter only active products
+        const activeProducts = dataResponse.data.filter(product => product.status === 'approved');
+  
+        setAllProduct(activeProducts);
+        setFilteredProduct(activeProducts); // Initially show only active products
       } else {
         console.error("Unexpected data format:", dataResponse);
       }
@@ -31,6 +34,7 @@ const UserProduct = () => {
       console.error("Error fetching products:", error);
     }
   };
+  
 
   useEffect(() => {
     if (user?._id) {

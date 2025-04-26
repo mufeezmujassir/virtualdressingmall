@@ -53,35 +53,7 @@ const {
     assignRole,
   } = require('../controller/admin/userController');
 
-
-const{getAllProducts,
-    getProductById,
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    updateInventory} = require('../controller/admin/productmanagement')
-
-router.get('/get-all-products', getAllProducts);
-router.get('/get-product-by-id', getProductById);
-router.put('/update-product-details', updateProduct);
-router.delete('/delete-product', deleteProduct);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  const productController = require('../controller/admin/productController');
 
 
 
@@ -89,7 +61,7 @@ router.delete('/delete-product', deleteProduct);
 router.get('/get-all-users', getAllUsers);
 
 router.post('/toggle-block-user/:userId', toggleBlockUser);
-router.post('/add-product', addProduct);
+
 router.delete('/delete-user/:userId', deleteUser);
 router.post('/assign-role/:userId', assignRole);
 
@@ -517,6 +489,15 @@ router.get('/shop/:shopId', async (req, res) => {
         res.status(500).json({ message: 'Server error while fetching reviews.' });
     }
 });
+
+//admin roouter
+
+router.get('/getallproduct', productController.getAllProducts);
+router.get('/get-product-details/:id', productController.getProductDetails);
+router.patch('/give-permission/:id/approve', productController.approveOrRejectProduct);
+router.put('/edit-product-details/:id', productController.editProduct);
+router.delete('/delete-product-details/:id', productController.deleteProduct);
+router.patch('/update-inventory/:productId/inventory', productController.updateInventory);
 
 module.exports = router;
 
