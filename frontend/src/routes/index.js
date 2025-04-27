@@ -43,8 +43,8 @@ import OrderManagement from '../components/ordermanagement'
 import Bidmanagement from '../components/bidmanagement'
 import ReservationManagement from '../components/reservationmanagement'
 import CommonManagment from '../components/commentmanagement'
-
-
+import AdminBidIncome from '../components/bidsaleincomeadmin'
+import AdminReservation from '../components/adminreservationincome'
 
 const router = createBrowserRouter([
  {
@@ -135,6 +135,14 @@ const router = createBrowserRouter([
                  ,{
                      path:"comment-management",
                      element:<CommonManagment/>}
+                ,{
+                    path:"Bid-income-admin",
+                    element:<AdminBidIncome/>
+                }
+                ,{
+                    path:"reservation-income-admin",
+                    element:<AdminReservation/>
+                }
              ]
          },
          {

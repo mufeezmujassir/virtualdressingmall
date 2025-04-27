@@ -79,6 +79,14 @@ const {
       flagComment
 }   = require('../controller/admin/commentmanagement');
 
+
+
+const {getBiddingSalesIncome }= require('../controller/adminfinance/winningbidincome');
+const {getReservationIncomeReport}= require('../controller/adminfinance/adminreservationincome');
+
+router.get('/get-bidding-sales-income', getBiddingSalesIncome);
+router.get('/get-reservation-income-report', getReservationIncomeReport);
+
 router.get('/get-all-comments', getAllComments);
 router.get('/get-average-rating/:productId', getAverageProductRating);  
 router.delete('/delete-comment/:commentId', deleteComments);

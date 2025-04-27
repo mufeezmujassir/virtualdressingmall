@@ -32,6 +32,9 @@ const AdminPanel = () => {
         { name: 'Bid Management', path: 'bid-management', icon: '🔨' },
         { name: 'Reservation Management', path: 'reservation-management', icon: '📅' },
         { name: 'Comment Management', path: 'comment-management', icon: '💬' }
+        ,{ name: 'Bid Income', path: 'Bid-income-admin', icon: '💰' },
+        { name: 'Reservation Income', path: 'reservation-income-admin', icon: '💵' }
+        
     ];
 
     return (
