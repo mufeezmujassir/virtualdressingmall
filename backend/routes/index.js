@@ -78,13 +78,18 @@ const {
       getLikesAnalysis,
       flagComment
 }   = require('../controller/admin/commentmanagement');
+const { getTotalRevenueSummary } = require('../controller/adminfinance/totalRevenueSummary');
 
 
 
 const {getBiddingSalesIncome }= require('../controller/adminfinance/winningbidincome');
 const {getReservationIncomeReport}= require('../controller/adminfinance/adminreservationincome');
 const{getSellerProductReviews}=require('../controller/comment/sellercomment')
+const { getCustomerSellerAnalytics }=require('../controller/adminfinance/customerSellerAnalytics')
 
+router.get('/customer-seller', getCustomerSellerAnalytics);
+
+router.get('/total-revenue-summary', getTotalRevenueSummary);
 router.get('/get-seller-product-reviews', getSellerProductReviews);
 router.get('/get-bidding-sales-income', getBiddingSalesIncome);
 router.get('/get-reservation-income-report', getReservationIncomeReport);
@@ -152,7 +157,6 @@ router.get("/search-products", searchProduct);
   
 // Reservation routes
 router.post("/add-reservation", authToken, addReservation, paymentController);
-router.post('/webhooks', webhook);
 router.post("/add-reservation",authToken,addReservation);
 router.get("/get-reservation",getReservationDetails);
 router.post("/update-reservation",updatereservation);
@@ -337,7 +341,147 @@ router.post('/update-bid',updateBid)
 //payment
 router.post("/create-checkout-session", authToken, paymentController);
 router.post("/webhook", webhook);
+// Add direct cart clear route that can be called from success page
+router.post("/clear-cart-after-payment", authToken, async (req, res) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: User ID not found",
+                error: "Unauthorized"
+            });
+        }
+        
+        console.log(`Manual cart clear request for user: ${userId}`);
+        const result = await CartProduct.deleteMany({ userId: userId });
+        
+        res.json({
+            success: true,
+            message: `Successfully cleared ${result.deletedCount} items from cart`,
+            count: result.deletedCount
+        });
+    } catch (error) {
+        console.error('Error clearing cart after payment:', error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to clear cart items",
+            error: error.message
+        });
+    }
+});
 
+// Add a dedicated endpoint to manually create orders from cart items after payment
+router.post("/create-orders-after-payment", authToken, async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { address } = req.body;
+        
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: User ID not found",
+                error: "Unauthorized"
+            });
+        }
+        
+        console.log(`Manual order creation request for user: ${userId}`);
+        
+        // Get cart items
+        const cartItems = await CartProduct.find({ userId: userId }).populate('productId');
+        
+        if (!cartItems || cartItems.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No items in cart to create orders from",
+                error: "Cart is empty"
+            });
+        }
+        
+        console.log(`Found ${cartItems.length} cart items to create orders from`);
+        
+        // Create orders
+        const orderPromises = cartItems.map(async (item) => {
+            try {
+                if (!item.productId) {
+                    console.log(`Skipping cart item without product ID: ${item._id}`);
+                    return null;
+                }
+                
+                // Create order data
+                const orderData = {
+                    productID: item.productId._id,
+                    userID: userId,
+                    TotalAmount: item.productId.sellingPrice * item.quantity,
+                    Address: address || 'Address not provided',
+                    Quantity: item.quantity,
+                    Size: item.size || 'Default',
+                    Status: "processing"
+                };
+                
+                // Create and save the order
+                const newOrder = new orderModel(orderData);
+                return await newOrder.save();
+            } catch (error) {
+                console.error(`Error creating order for cart item ${item._id}:`, error);
+                return null;
+            }
+        });
+        
+        // Wait for all orders to be created
+        const createdOrders = await Promise.all(orderPromises);
+        const successfulOrders = createdOrders.filter(order => order !== null);
+        
+        // Clear cart after orders are created
+        if (successfulOrders.length > 0) {
+            await CartProduct.deleteMany({ userId: userId });
+            console.log(`Cleared cart for user ${userId} after creating ${successfulOrders.length} orders`);
+        }
+        
+        res.json({
+            success: true,
+            message: `Successfully created ${successfulOrders.length} orders from cart items`,
+            orderCount: successfulOrders.length
+        });
+    } catch (error) {
+        console.error('Error creating orders after payment:', error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to create orders",
+            error: error.message
+        });
+    }
+});
+
+// Add refresh cart count endpoint
+router.get("/refresh-cart-count", authToken, async (req, res) => {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: User ID not found",
+                error: "Unauthorized"
+            });
+        }
+        
+        // Get accurate count from database
+        const count = await CartProduct.countDocuments({ userId: userId });
+        
+        res.json({
+            success: true,
+            data: { count },
+            message: "Cart count refreshed successfully"
+        });
+    } catch (error) {
+        console.error('Error refreshing cart count:', error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to refresh cart count",
+            error: error.message
+        });
+    }
+});
 
 //financial 
 router.get("/sales-report", getSalesReport);  
@@ -556,6 +700,121 @@ router.patch('/give-permission/:id/approve', productController.approveOrRejectPr
 router.put('/edit-product-details/:id', productController.editProduct);
 router.delete('/delete-product-details/:id', productController.deleteProduct);
 router.patch('/update-inventory/:productId/inventory', productController.updateInventory);
+
+// Add a super simple test order endpoint
+router.post("/create-minimal-order", authToken, async (req, res) => {
+    try {
+        const userId = req.userId;
+        const mongoose = require('mongoose');
+        
+        console.log('Creating minimal test order...');
+        
+        // Directly use the model's test method
+        const testOrder = await orderModel.createTestOrder(userId);
+        
+        res.json({
+            success: true,
+            message: "Minimal test order created",
+            order: testOrder
+        });
+    } catch (error) {
+        console.error('Error creating minimal order:', error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to create minimal order",
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Add a diagnostic endpoint to create a test order directly
+router.post("/create-test-order", authToken, async (req, res) => {
+    try {
+        const userId = req.userId;
+        const mongoose = require('mongoose');
+        
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: User ID not found",
+                error: "Unauthorized"
+            });
+        }
+        
+        console.log(`Creating test order for user: ${userId}`);
+        
+        // Find a product to use
+        const product = await Product.findOne();
+        
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "No products found in the database",
+                error: "Product not found"
+            });
+        }
+        
+        // Create test order data
+        const testOrderData = {
+            productID: product._id,
+            userID: userId,
+            TotalAmount: 100, // Example price
+            Address: "Test Address for Diagnostic",
+            Quantity: 1,
+            Size: "M",
+            Status: "test_order"
+        };
+        
+        console.log("Test order data:", JSON.stringify(testOrderData, null, 2));
+        
+        // Ensure IDs are ObjectIds
+        if (typeof testOrderData.productID === 'string') {
+            testOrderData.productID = new mongoose.Types.ObjectId(testOrderData.productID);
+        }
+        
+        if (typeof testOrderData.userID === 'string') {
+            testOrderData.userID = new mongoose.Types.ObjectId(testOrderData.userID);
+        }
+        
+        // Create and save the order
+        const newOrder = new orderModel(testOrderData);
+        const savedOrder = await newOrder.save();
+        
+        // Verify the order was saved by retrieving it
+        const verifyOrder = await orderModel.findById(savedOrder._id);
+        
+        if (!verifyOrder) {
+            return res.status(500).json({
+                success: false,
+                message: "Order was created but could not be verified in database",
+                error: "Verification failed",
+                orderData: savedOrder
+            });
+        }
+        
+        console.log(`Test order created with ID: ${savedOrder._id}`);
+        
+        // Check total count of orders
+        const totalOrders = await orderModel.countDocuments();
+        console.log(`Total orders in database: ${totalOrders}`);
+        
+        res.json({
+            success: true,
+            message: "Test order created successfully",
+            order: savedOrder,
+            totalOrders: totalOrders
+        });
+    } catch (error) {
+        console.error('Error creating test order:', error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to create test order",
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
 
 module.exports = router;
 

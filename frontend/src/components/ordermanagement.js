@@ -173,7 +173,7 @@ function App() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ${order.TotalAmount ? order.TotalAmount.toFixed(2) : '0.00'}
+                          LKR {order.TotalAmount ? order.TotalAmount.toFixed(2) : '0.00'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {formatDate(order.createdAt)}
@@ -223,14 +223,14 @@ function App() {
                     <p className="mb-2"><strong>Product Name:</strong> {
                       selectedOrder.productID ? selectedOrder.productID.productName : 'Unknown'
                     }</p>
-                    <p className="mb-2"><strong>Price:</strong> ${
+                    <p className="mb-2"><strong>Price:</strong> LKR {
                       selectedOrder.productID && selectedOrder.productID.price 
                         ? selectedOrder.productID.price.toFixed(2) 
                         : '0.00'
                     }</p>
                     <p className="mb-2"><strong>Quantity:</strong> {selectedOrder.Quantity}</p>
                     <p className="mb-2"><strong>Size:</strong> {selectedOrder.Size || 'N/A'}</p>
-                    <p><strong>Total Amount:</strong> ${selectedOrder.TotalAmount.toFixed(2)}</p>
+                    <p><strong>Total Amount:</strong> LKR {selectedOrder.TotalAmount.toFixed(2)}</p>
                   </div>
                 </div>
                 

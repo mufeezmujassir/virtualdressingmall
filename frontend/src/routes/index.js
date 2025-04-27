@@ -45,7 +45,10 @@ import ReservationManagement from '../components/reservationmanagement'
 import CommonManagment from '../components/commentmanagement'
 import AdminBidIncome from '../components/bidsaleincomeadmin'
 import AdminReservation from '../components/adminreservationincome'
+import RevenueSummary from '../components/RevenueSummaryDashboard'
+import AnalyticsDashboard from '../components/AnalyticsDashboard'
 
+import { elements } from 'chart.js'
 const router = createBrowserRouter([
  {
      path:"/",
@@ -142,6 +145,14 @@ const router = createBrowserRouter([
                 ,{
                     path:"reservation-income-admin",
                     element:<AdminReservation/>
+                }
+                ,{
+                    path:"revenue",
+                    element:<RevenueSummary/>
+                }
+                ,{
+                    path:"analytic-part",
+                    element:<AnalyticsDashboard/>
                 }
              ]
          },

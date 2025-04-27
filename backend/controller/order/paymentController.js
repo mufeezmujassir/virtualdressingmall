@@ -1,5 +1,8 @@
 const stripe = require('../../config/stripe')
-const userModel  = require('../../models/userModel')
+const userModel = require('../../models/userModel')
+const productModel = require('../../models/productModel')
+const orderModel = require('../../models/orderModel')
+const cartModel = require('../../models/cartProduct')
 
 const paymentController = async(request, response) =>{
     try{
@@ -13,7 +16,7 @@ const paymentController = async(request, response) =>{
             });
         }
 
-        const user = await userModel.findOne({_id :  request.userId})
+        const user = await userModel.findOne({_id: request.userId})
         
         if (!user) {
             return response.status(404).json({
@@ -21,6 +24,56 @@ const paymentController = async(request, response) =>{
                 error: true,
                 success: false
             });
+        }
+
+        // First, create pending orders and update product quantities
+        try {
+            // Store the cart item IDs to delete later
+            const cartItemsToDelete = cartItems.map(item => item._id);
+            
+            // Process each cart item
+            for (const item of cartItems) {
+                // 1. Create order entry with pending status
+                const orderDetails = {
+                    productID: item.productId._id,
+                    userID: request.userId,
+                    TotalAmount: item.productId.sellingPrice * item.quantity,
+                    Address: address,
+                    Quantity: item.quantity,
+                    Size: item.size,
+                    Status: 'pending'
+                };
+
+                const order = new orderModel(orderDetails);
+                await order.save();
+                console.log('Pending order created:', order._id);
+
+                // 2. Update product quantity
+                const product = await productModel.findById(item.productId._id);
+                if (product) {
+                    // Find the size index to update
+                    const sizeIndex = product.Size.findIndex(
+                        s => s.size.toLowerCase() === item.size.toLowerCase()
+                    );
+                    
+                    if (sizeIndex !== -1) {
+                        // Decrease quantity
+                        product.Size[sizeIndex].quantity = Math.max(0, product.Size[sizeIndex].quantity - item.quantity);
+                        await product.save();
+                        console.log(`Updated quantity for product ${product._id}, size ${item.size}. New quantity: ${product.Size[sizeIndex].quantity}`);
+                    }
+                }
+            }
+            
+            // 3. Delete the selected cart items from the database
+            if (cartItemsToDelete.length > 0) {
+                const deleteResult = await cartModel.deleteMany({ _id: { $in: cartItemsToDelete }});
+                console.log(`Deleted ${deleteResult.deletedCount} items from cart`);
+            }
+        } catch (error) {
+            console.error('Error processing orders:', error);
+            // Continue with payment even if order processing fails
+            // The webhook will handle it again on successful payment
         }
 
         // Format line items for Stripe
@@ -84,7 +137,9 @@ const paymentController = async(request, response) =>{
             customer_email : user.email,
             metadata : {
                 userId : request.userId,
-                address : address
+                address : address,
+                ordersProcessed: 'true', // Flag to indicate orders were already processed
+                cartItemsDeleted: 'true'  // Flag to indicate cart items were already deleted
             },
             line_items : lineItems,
             success_url : `${process.env.FRONTEND_URL || 'http://localhost:3000'}/Success`,
@@ -99,7 +154,7 @@ const paymentController = async(request, response) =>{
             success : true
         })
 
-    }catch (error){
+    } catch (error) {
         console.error('Stripe payment error:', error);
         response.status(500).json({
             message : error?.message || 'Payment processing failed',
