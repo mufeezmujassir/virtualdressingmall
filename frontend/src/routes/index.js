@@ -40,6 +40,12 @@ import SellerDashboardReview from '../pages/SellerDashboardReview'
 import AdminUserDetails from '../components/adminusermanagement'
 import ProductManagement from '../components/productmanagement'
 import OrderManagement from '../components/ordermanagement'
+import Bidmanagement from '../components/bidmanagement'
+import ReservationManagement from '../components/reservationmanagement'
+import CommonManagment from '../components/commentmanagement'
+
+
+
 const router = createBrowserRouter([
  {
      path:"/",
@@ -118,7 +124,17 @@ const router = createBrowserRouter([
                     ,{
                      path:"order-management",
                      element:<OrderManagement/> 
+                 },{
+                    path:"bid-management",
+                    element:<Bidmanagement/>
                  }
+                 ,{
+                     path:"reservation-management",
+                     element:<ReservationManagement/>
+                 }
+                 ,{
+                     path:"comment-management",
+                     element:<CommonManagment/>}
              ]
          },
          {

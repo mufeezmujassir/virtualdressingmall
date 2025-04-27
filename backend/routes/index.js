@@ -56,14 +56,48 @@ const {
 const{getAllOrders,
     getOrderDetail,
     generateOrderReport}=require('../controller/admin/ordermanagementcontroller')
-
-
-
-
 const productController = require('../controller/admin/productController');
 
 
+const{ getAllBids,
+  getBidDetail,
+  updateBidDuration,
+  archiveCompletedBids,
+  resolveDispute,
+  generateBidReport}=require('../controller/admin/bidcontrolleradmin')
+const{
+    getReservations,
+  validateReservation,
+  markExpiredOrCompletedReservations} = require('../controller/admin/reservationalControl');
 
+const {
+    getAllComments,
+      getAverageProductRating,
+      deleteComments,
+      toggleLikeComment,
+      getLikesAnalysis,
+      flagComment
+}   = require('../controller/admin/commentmanagement');
+
+router.get('/get-all-comments', getAllComments);
+router.get('/get-average-rating/:productId', getAverageProductRating);  
+router.delete('/delete-comment/:commentId', deleteComments);
+router.post('/toggle-like/:commentId', toggleLikeComment);
+router.get('/get-likes-analysis', getLikesAnalysis);
+router.post('/flag-comment/:commentId', flagComment);
+
+
+
+router.get('/get-reservations-admin', getReservations);
+router.post('/validate-reservation-admin', validateReservation);
+router.post('/mark-expired-or-completed-reservations', markExpiredOrCompletedReservations);
+
+router.get('/get-all-admin', getAllBids);
+router.get('/get-bid-details/:bidId', getBidDetail);
+router.put('/update-bid-duration/:bidId', updateBidDuration);
+router.put('/archive-completed-bids', archiveCompletedBids);
+router.post('/resolve-dispute', resolveDispute);
+router.get('/generate-bid-report', generateBidReport);
 
 router.get('/get-all-orders', getAllOrders);
 router.get('/get-order-details/:orderId', getOrderDetail);
