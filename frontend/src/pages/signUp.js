@@ -1,16 +1,23 @@
-import React, { useState, useRef, useEffect } from "react";
-import { FaEye, FaEyeSlash, FaCheckCircle, FaTimesCircle, FaMapMarkerAlt, FaSearch } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { FaEye, FaEyeSlash, FaLinkedinIn, FaGoogle, FaFacebookF, FaMapMarkerAlt } from "react-icons/fa";
+import { Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Modal from "react-modal";
-import loginIcons from "../assest/signin.gif";
 import imageTobase64 from "../helpers/imageTobase65";
-import SummaryApi from "../common/index";
-import { toast } from "react-toastify";
+import SummaryApi from "../common";
+import { toast } from 'react-toastify';
 import L from "leaflet";
 import debounce from 'lodash.debounce';
 
+// Import the image directly - assuming you have a similar signup image
+import signupImage from '../assest/login/935760.jpg';
+import loginIcons from "../assest/signin.gif";
+
+// Image fallback URL
+const FALLBACK_IMG_URL = "https://i.pinimg.com/originals/45/00/6c/45006c3f0832d2e90cc9b77729218962.jpg";
+
+// Setup Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
@@ -32,22 +39,21 @@ const SignUp = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [data, setData] = useState({
     email: '',
     password: '',
     name: '',
     confirmPassword: '',
     profilePic: '',
-    role: '',
-    location: { lat: 6.9271, lng: 79.8612 } // Ensure location object matches schema
+    role: 'GENERAL',
+    location: { lat: 6.9271, lng: 79.8612 }
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const navigate = useNavigate();
-
-  data.role = isSeller ? 'SELLER' : 'GENERAL';
 
   const handleOnChange = (event) => {
     const { name, value } = event.target;
@@ -57,7 +63,8 @@ const SignUp = () => {
     }));
 
     if (name === 'confirmPassword' || name === 'password') {
-      setPasswordMatch(data.password === value || data.confirmPassword === value);
+      const passwordToCompare = name === 'confirmPassword' ? data.password : data.confirmPassword;
+      setPasswordMatch(passwordToCompare === value);
     }
   };
 
@@ -84,6 +91,7 @@ const SignUp = () => {
       return;
     }
   
+    setLoading(true);
     try {
       const response = await fetch(SummaryApi.SignUP.url, {
         method: SummaryApi.SignUP.method || 'POST',
@@ -95,8 +103,8 @@ const SignUp = () => {
           email: data.email,
           password: data.password,
           profilePic: data.profilePic,
-          role: data.role,
-          location: data.location // Send location as object with lat and lng
+          role: isSeller ? 'SELLER' : 'GENERAL',
+          location: data.location
         }),
       });
   
@@ -110,15 +118,13 @@ const SignUp = () => {
     } catch (error) {
       console.error('Error during signup:', error);
       toast.error('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleRoleChange = (role) => {
     setIsSeller(role === 'SELLER');
-    setData((prevData) => ({
-      ...prevData,
-      role: role,
-    }));
   };
 
   const debouncedSearch = debounce(async (query) => {
@@ -136,7 +142,7 @@ const SignUp = () => {
           lng: parseFloat(results[0].lon),
           address: results[0].display_name
         });
-        setMapKey(prev => prev + 1); // Force map re-render
+        setMapKey(prev => prev + 1);
       }
     } catch (error) {
       console.error("Error searching location:", error);
@@ -165,9 +171,9 @@ const SignUp = () => {
     setLocation(newLocation);
     setData((prevData) => ({
       ...prevData,
-      location: newLocation, // Update location in data
+      location: newLocation,
     }));
-    setMapKey(prev => prev + 1); // Force map re-render
+    setMapKey(prev => prev + 1);
   };
 
   function LocationMarker() {
@@ -191,260 +197,323 @@ const SignUp = () => {
     return location ? <Marker position={[location.lat, location.lng]} /> : null;
   }
 
+  // Handle social signup
+  const handleSocialSignup = (provider) => {
+    console.log(`Signup with ${provider}`);
+    toast.info(`${provider} signup is not implemented yet`);
+  }
+
   return (
-    <section id="signup" className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-6 w-full max-w-sm mx-auto shadow-lg rounded-lg">
-        <h2 className="text-center text-xl font-bold text-gray-700 mb-4">Create Your Account</h2>
-
-        {/* Role Selection Buttons */}
-        <div className="flex justify-center gap-4 mb-4">
-          <button
-            onClick={() => handleRoleChange('GENERAL')}
-            className={`px-4 py-2 rounded-full transition ${
-              !isSeller ? 'bg-red-600 text-white' : 'bg-gray-300'
-            }`}
-          >
-            User
-          </button>
-          <button
-            onClick={() => handleRoleChange('SELLER')}
-            className={`px-4 py-2 rounded-full transition ${
-              isSeller ? 'bg-red-600 text-white' : 'bg-gray-300'
-            }`}
-          >
-            Seller
-          </button>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Container for both sides - with max-width to prevent overflow */}
+      <div className="flex w-full max-w-5xl mx-auto shadow-xl rounded-2xl overflow-hidden">
+        {/* Left side - Shopping Woman Image */}
+        <div className="hidden lg:block lg:w-1/2 relative bg-white">
+          {/* Display the shopping woman image */}
+          <div className="absolute inset-0">
+            <img 
+              src={signupImage}
+              alt="Woman with shopping bags" 
+              className="w-full h-full object-cover object-center"
+              onError={(e) => {
+                console.error("Image failed to load");
+                e.target.onerror = null; // Prevent infinite loop
+                e.target.src = FALLBACK_IMG_URL;
+              }}
+            />
+          </div>
         </div>
+        
+        {/* Right side - Signup form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center py-10 px-6 bg-white">
+          <div className="w-full max-w-md space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Hello,
+              </h2>
+              <p className="text-xl font-medium text-gray-900">Create Your Account</p>
+              <p className="mt-1 text-sm text-gray-600">
+                Sign up to start your journey with us
+              </p>
+            </div>
+            
+            {/* Account Type Selection */}
+            <div className="flex justify-center gap-4">
+              <button
+                type="button"
+                onClick={() => handleRoleChange('GENERAL')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all 
+                  ${!isSeller ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+              >
+                User Account
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleChange('SELLER')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all 
+                  ${isSeller ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+              >
+                Seller Account
+              </button>
+            </div>
+            
+            {/* Profile Image Upload */}
+            <div className="flex justify-center">
+              <div className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200">
+                <img 
+                  src={data.profilePic || loginIcons} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+                <label className="absolute inset-0 opacity-0 hover:opacity-80 bg-black bg-opacity-50 flex items-center justify-center text-white text-xs font-medium cursor-pointer transition-all">
+                  Upload Photo
+                  <input type="file" className="hidden" onChange={handleUploadPic} accept="image/*" />
+                </label>
+              </div>
+            </div>
+            
+            <form className="mt-4 space-y-5" onSubmit={handleSubmit}>
+              <div className="rounded-md space-y-4">
+                <div className="group">
+                  <label className="sr-only">{isSeller ? 'Shop Name' : 'Full Name'}</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={data.name}
+                    onChange={handleOnChange}
+                    required
+                    className="appearance-none relative block w-full px-4 py-2.5 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 text-sm shadow-sm"
+                    placeholder={isSeller ? 'Shop Name' : 'Full Name'}
+                  />
+                </div>
+                
+                <div className="group">
+                  <label className="sr-only">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={data.email}
+                    onChange={handleOnChange}
+                    required
+                    className="appearance-none relative block w-full px-4 py-2.5 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 text-sm shadow-sm"
+                    placeholder="Email"
+                  />
+                </div>
+                
+                <div className="group">
+                  <label className="sr-only">Location</label>
+                  <button
+                    type="button"
+                    onClick={() => setModalIsOpen(true)}
+                    className="appearance-none relative block w-full px-4 py-2.5 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 text-sm shadow-sm text-left flex items-center justify-between"
+                  >
+                    <span className="truncate">
+                      {location.address ? location.address : "Select your location"}
+                    </span>
+                    <FaMapMarkerAlt className="text-red-500" />
+                  </button>
+                </div>
+                
+                <div className="relative group">
+                  <label className="sr-only">Password</label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={data.password}
+                    onChange={handleOnChange}
+                    required
+                    className="appearance-none relative block w-full px-4 py-2.5 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 text-sm pr-10 shadow-sm"
+                    placeholder="Password"
+                  />
+                  <div 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                    onClick={() => setShowPassword(prev => !prev)}
+                  >
+                    {showPassword ? <FaEyeSlash className="text-gray-400" /> : <FaEye className="text-gray-400" />}
+                  </div>
+                </div>
+                
+                <div className="relative group">
+                  <label className="sr-only">Confirm Password</label>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={data.confirmPassword}
+                    onChange={handleOnChange}
+                    required
+                    className={`appearance-none relative block w-full px-4 py-2.5 border ${
+                      data.confirmPassword && !passwordMatch ? 'border-red-500' : 'border-gray-300'
+                    } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 text-sm pr-10 shadow-sm`}
+                    placeholder="Confirm Password"
+                  />
+                  <div 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                    onClick={() => setShowConfirmPassword(prev => !prev)}
+                  >
+                    {showConfirmPassword ? <FaEyeSlash className="text-gray-400" /> : <FaEye className="text-gray-400" />}
+                  </div>
+                </div>
+                
+                {data.confirmPassword && !passwordMatch && (
+                  <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+                )}
+              </div>
 
-        {/* Profile Picture Upload */}
-        <div className="w-20 h-20 mx-auto relative rounded-full border-2 border-gray-300 overflow-hidden">
-          <img 
-            src={data.profilePic || loginIcons} 
-            alt="Profile" 
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = loginIcons;
-            }}
-          />
-          <label className="absolute bottom-0 w-full text-center bg-gray-200 text-xs py-1 cursor-pointer hover:bg-gray-300 transition">
-            Upload Photo
-            <input type="file" className="hidden" onChange={handleUploadPic} accept="image/*" />
-          </label>
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                >
+                  {loading ? 'Signing up...' : (isSeller ? 'Register as Seller' : 'Sign Up')}
+                </button>
+              </div>
+              
+              <div className="text-center">
+                <div className="relative py-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-2 bg-white text-sm text-gray-500">Or</span>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center space-x-4 mt-3">
+                  <button 
+                    type="button"
+                    onClick={() => handleSocialSignup('Google')}
+                    className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 shadow-sm"
+                  >
+                    <FaGoogle className="text-red-500" />
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => handleSocialSignup('Facebook')}
+                    className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 shadow-sm"
+                  >
+                    <FaFacebookF className="text-blue-600" />
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => handleSocialSignup('LinkedIn')}
+                    className="w-9 h-9 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 shadow-sm"
+                  >
+                    <FaLinkedinIn className="text-blue-500" />
+                  </button>
+                </div>
+              </div>
+            </form>
+            
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <Link to="/login" className="font-medium text-red-600 hover:text-red-500">
+                  Login
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Sign Up Form */}
-        <form className="pt-4 flex flex-col gap-3" onSubmit={handleSubmit}>
-          <div className="grid">
-            <label className="font-semibold">{isSeller ? 'Shop Name' : 'Full Name'}:</label>
+      {/* Location Selection Modal */}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={() => setModalIsOpen(false)}
+        className="modal w-full max-w-md mx-auto bg-white p-6 rounded-lg shadow-xl"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+        ariaHideApp={false}
+      >
+        <div className="flex flex-col gap-4">
+          <h3 className="text-lg font-bold border-b pb-2">Select Your Location</h3>
+          
+          {/* Search Bar */}
+          <div className="relative">
             <input
               type="text"
-              placeholder={`Enter ${isSeller ? 'shop name' : 'your name'}`}
-              name="name"
-              value={data.name}
-              onChange={handleOnChange}
-              required
-              className="p-2 border rounded-md focus:ring focus:ring-blue-300"
+              placeholder="Search location (e.g., Colombo, Sri Lanka)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full p-2 border rounded-md pl-10"
             />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaMapMarkerAlt className="text-gray-400" />
+            </div>
+            {isSearching && (
+              <span className="absolute right-3 top-3 text-gray-500 text-sm">Searching...</span>
+            )}
           </div>
 
-          <div className="grid">
-            <label className="font-semibold">Email:</label>
-            <input
-              type="email"
-              placeholder="Enter email"
-              name="email"
-              value={data.email}
-              onChange={handleOnChange}
-              required
-              className="p-2 border rounded-md focus:ring focus:ring-blue-300"
-            />
-          </div>
-
-          <div className="grid">
-            <label className="font-semibold">Location:</label>
-            <button
-              type="button"
-              onClick={() => setModalIsOpen(true)}
-              className={`flex items-center gap-2 p-2 border rounded-md ${
-                location.address ? "bg-gray-100" : "bg-gray-200"
-              } text-gray-700 hover:bg-gray-300 transition`}
+          {/* Map Container */}
+          <div className="h-60 border rounded-md overflow-hidden">
+            <MapContainer
+              key={mapKey}
+              center={[location.lat, location.lng]}
+              zoom={13}
+              style={{ height: "100%", width: "100%" }}
+              className="z-0"
             >
-              <FaMapMarkerAlt className="text-red-500" /> 
-              {location.address || "Choose your location"}
+              <TileLayer 
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
+              <UpdateMapCenter center={[location.lat, location.lng]} />
+              <LocationMarker />
+            </MapContainer>
+          </div>
+
+          {/* Selected Location */}
+          <div className="bg-gray-100 p-3 rounded-md">
+            <h4 className="font-medium flex items-center gap-2">
+              <FaMapMarkerAlt className="text-red-500" /> Selected Location
+            </h4>
+            <p className="text-sm mt-1 break-words">{location.address || "Click on the map or search to select a location"}</p>
+          </div>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="overflow-y-auto max-h-40 border rounded-md">
+              <h4 className="font-medium p-2 bg-gray-100">Search Results</h4>
+              <ul>
+                {searchResults.map((result, index) => (
+                  <li
+                    key={index}
+                    onClick={() => handleLocationSelect(result)}
+                    className="cursor-pointer p-2 border-b hover:bg-gray-100 text-sm"
+                  >
+                    {result.display_name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 mt-4">
+            <button
+              onClick={() => setModalIsOpen(false)}
+              className="px-4 py-2 border rounded-md hover:bg-gray-100 transition"
+            >
+              Cancel
             </button>
-            {location.address && (
-              <p className="text-xs text-gray-500 mt-1 truncate">{location.address}</p>
-            )}
+            <button
+              onClick={() => {
+                if (location.address) {
+                  setModalIsOpen(false);
+                } else {
+                  toast.warning("Please select a location first");
+                }
+              }}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+              disabled={!location.address}
+            >
+              Confirm Location
+            </button>
           </div>
-
-          <div className="grid">
-            <label className="font-semibold">Password:</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter password"
-                name="password"
-                value={data.password}
-                onChange={handleOnChange}
-                required
-                minLength={6}
-                className="p-2 border rounded-md w-full pr-10 focus:ring focus:ring-blue-300"
-              />
-              <span
-                className="absolute right-3 top-2 cursor-pointer text-gray-500 hover:text-gray-700"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-          </div>
-
-          <div className="grid">
-            <label className="font-semibold">Confirm Password:</label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm password"
-                name="confirmPassword"
-                value={data.confirmPassword}
-                onChange={handleOnChange}
-                required
-                minLength={6}
-                className="p-2 border rounded-md w-full pr-10 focus:ring focus:ring-blue-300"
-              />
-              <span
-                className="absolute right-3 top-2 cursor-pointer text-gray-500 hover:text-gray-700"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-            {/* Real-time password match indicator */}
-            {data.confirmPassword && (
-              <div className="text-sm mt-1 flex items-center gap-2">
-                {passwordMatch ? (
-                  <span className="text-green-600 flex items-center">
-                    <FaCheckCircle /> Passwords match
-                  </span>
-                ) : (
-                  <span className="text-red-600 flex items-center">
-                    <FaTimesCircle /> Passwords do not match
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          <Modal
-            isOpen={modalIsOpen}
-            onRequestClose={() => setModalIsOpen(false)}
-            className="modal w-full max-w-md mx-auto bg-white p-4 rounded-lg relative"
-            overlayClassName="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center"
-            ariaHideApp={false}
-          >
-            <div className="flex flex-col gap-4 h-full">
-              <h3 className="text-lg font-bold">Select Your Location</h3>
-              
-              {/* Search Bar */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search location (e.g., Colombo, Sri Lanka)"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full p-2 border rounded-md pl-10"
-                />
-                <FaSearch className="absolute left-3 top-3 text-gray-400" />
-                {isSearching && (
-                  <span className="absolute right-3 top-3 text-gray-500 text-sm">Searching...</span>
-                )}
-              </div>
-
-              {/* Map Container - Force re-render with key */}
-              <div className="h-60 border rounded-md overflow-hidden">
-                <MapContainer
-                  key={mapKey}
-                  center={[location.lat, location.lng]}
-                  zoom={13}
-                  style={{ height: "100%", width: "100%" }}
-                  className="z-0"
-                >
-                  <TileLayer 
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  <UpdateMapCenter center={[location.lat, location.lng]} />
-                  <LocationMarker />
-                </MapContainer>
-              </div>
-
-              {/* Selected Location Display */}
-              <div className="bg-gray-100 p-3 rounded-md">
-                <h4 className="font-semibold flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-red-500" /> Selected Location
-                </h4>
-                <p className="text-sm mt-1">{location.address || "Click on the map or search to select a location"}</p>
-              </div>
-
-              {/* Search Results */}
-              {searchResults.length > 0 && (
-                <div className="overflow-y-auto max-h-40 border rounded-md">
-                  <h4 className="font-semibold p-2 bg-gray-100">Search Results</h4>
-                  <ul>
-                    {searchResults.map((result, index) => (
-                      <li
-                        key={index}
-                        onClick={() => handleLocationSelect(result)}
-                        className="cursor-pointer p-2 border-b hover:bg-gray-100 text-sm"
-                      >
-                        {result.display_name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  onClick={() => setModalIsOpen(false)}
-                  className="px-4 py-2 border rounded-md hover:bg-gray-100 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (location.address) {
-                      setModalIsOpen(false);
-                    } else {
-                      toast.warning("Please select a location first");
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
-                  disabled={!location.address}
-                >
-                  Confirm Location
-                </button>
-              </div>
-            </div>
-          </Modal>
-
-          <button 
-            type="submit"
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full hover:scale-105 transition-all w-full mt-4"
-          >
-            {isSeller ? 'Register Shop' : 'Sign Up'}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center">
-          Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline">
-            Login
-          </Link>
-        </p>
-      </div>
-    </section>
+        </div>
+      </Modal>
+    </div>
   );
 };
 

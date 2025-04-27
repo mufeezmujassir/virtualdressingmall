@@ -83,7 +83,9 @@ const {
 
 const {getBiddingSalesIncome }= require('../controller/adminfinance/winningbidincome');
 const {getReservationIncomeReport}= require('../controller/adminfinance/adminreservationincome');
+const{getSellerProductReviews}=require('../controller/comment/sellercomment')
 
+router.get('/get-seller-product-reviews', getSellerProductReviews);
 router.get('/get-bidding-sales-income', getBiddingSalesIncome);
 router.get('/get-reservation-income-report', getReservationIncomeReport);
 
