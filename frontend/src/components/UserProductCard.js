@@ -23,8 +23,8 @@ const UserProductCard = ({ data }) => {
 
       {/* Icons Section */}
       <div className="flex justify-between items-center w-full mt-2 text-red-500 text-lg px-6">
-        <FaComment className="cursor-pointer" />
-        <FaShoppingCart className="cursor-pointer" />
+        
+        
         <span className="font-semibold text-red-500 cursor-pointer"><Link to={`/view-product/${data._id}`}>View</Link></span>
       </div>
     </div>

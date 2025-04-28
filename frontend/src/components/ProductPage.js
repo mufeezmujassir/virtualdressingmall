@@ -148,7 +148,7 @@ const ProductPage = ({ data }) => {
         <button
           onClick={handleAddToCart}
           disabled={loading}
-          className={`w-full bg-red-600 text-white py-3 rounded-md font-semibold ${
+          className={`bg-red-600 hover:bg-red-700 text-white text-base px-4 py-2 rounded-3xl w-1/2 ${
             loading ? "opacity-50 cursor-not-allowed" : "hover:bg-red-700"
           }`}
         >
