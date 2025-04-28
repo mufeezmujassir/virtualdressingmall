@@ -47,6 +47,11 @@ const getReservationIncomeReport = async (req, res) => {
 
     // Calculate total revenue
     const totalRevenue = reservationData.reduce((sum, item) => sum + item.revenue, 0);
+    
+    // Calculate revenue from only confirmed reservations
+    const confirmedRevenue = reservationData
+      .filter(item => item.validationStatus === 'Confirmed')
+      .reduce((sum, item) => sum + item.revenue, 0);
 
     if (format === 'pdf') {
       const doc = new PDFDocument({ margin: 50 });
@@ -63,7 +68,8 @@ const getReservationIncomeReport = async (req, res) => {
       doc.moveDown(2);
 
       doc.fontSize(16).text(`Total Reservations: ${reservationData.length}`, { align: 'left' });
-      doc.fontSize(16).text(`Total Income: $${totalRevenue.toFixed(2)}`, { align: 'left' });
+      doc.fontSize(16).text(`Total Income: LKR ${totalRevenue.toFixed(2)}`, { align: 'left' });
+      doc.fontSize(16).text(`Confirmed Income: LKR ${confirmedRevenue.toFixed(2)}`, { align: 'left' });
       doc.moveDown(2);
 
       // Table Headers
@@ -76,8 +82,9 @@ const getReservationIncomeReport = async (req, res) => {
       doc.text('Price', 330, tableTop);
       doc.text('Revenue', 380, tableTop);
       doc.text('Customer', 450, tableTop);
+      doc.text('Status', 520, tableTop);
 
-      doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+      doc.moveTo(50, tableTop + 15).lineTo(570, tableTop + 15).stroke();
       doc.font('Helvetica').fontSize(10);
 
       let rowTop = tableTop + 25;
@@ -99,9 +106,10 @@ const getReservationIncomeReport = async (req, res) => {
         doc.text(reservationDate, 160, rowTop);
         doc.text(item.size, 250, rowTop);
         doc.text(item.quantity.toString(), 290, rowTop);
-        doc.text(`$${item.price.toFixed(2)}`, 330, rowTop);
-        doc.text(`$${item.revenue.toFixed(2)}`, 380, rowTop);
+        doc.text(`LKR ${item.price.toFixed(2)}`, 330, rowTop);
+        doc.text(`LKR ${item.revenue.toFixed(2)}`, 380, rowTop);
         doc.text(item.customer.substring(0, 15), 450, rowTop);
+        doc.text(item.validationStatus || 'Pending', 520, rowTop);
 
         rowTop += 20;
       });
@@ -117,8 +125,8 @@ const getReservationIncomeReport = async (req, res) => {
         { header: 'Reservation Date', key: 'reservationDate', width: 20 },
         { header: 'Size', key: 'size', width: 10 },
         { header: 'Quantity', key: 'quantity', width: 10 },
-        { header: 'Price', key: 'price', width: 15 },
-        { header: 'Revenue', key: 'revenue', width: 15 },
+        { header: 'Price (LKR)', key: 'price', width: 15 },
+        { header: 'Revenue (LKR)', key: 'revenue', width: 15 },
         { header: 'Customer', key: 'customer', width: 20 },
         { header: 'Validation Status', key: 'validationStatus', width: 20 }
       ];
@@ -143,6 +151,10 @@ const getReservationIncomeReport = async (req, res) => {
         productName: 'Total Income',
         revenue: totalRevenue
       });
+      sheet.addRow({
+        productName: 'Confirmed Income',
+        revenue: confirmedRevenue
+      });
 
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', 'attachment; filename="reservation_income_report.xlsx"');
@@ -153,6 +165,7 @@ const getReservationIncomeReport = async (req, res) => {
       res.status(200).json({
         totalReservations: reservationData.length,
         totalIncome: totalRevenue,
+        confirmedIncome: confirmedRevenue, 
         reservations: reservationData
       });
     }

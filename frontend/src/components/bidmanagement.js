@@ -264,7 +264,7 @@ function BidManagementSystem() {
                             <div className="text-sm text-gray-500">{bid.productID?.brandName || 'Unknown'}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">${bid.startPrice.toFixed(2)}</div>
+                            <div className="text-sm text-gray-900">LKR. {bid.startPrice.toFixed(2)}</div>
                             <div className="text-xs text-gray-500">Highest: ${getHighestBid(bid.bidder).toFixed(2)}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -332,7 +332,7 @@ function BidManagementSystem() {
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Start Price</h3>
-                      <p className="text-base font-semibold">${currentBid.startPrice.toFixed(2)}</p>
+                      <p className="text-base font-semibold">LKR. {currentBid.startPrice.toFixed(2)}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Close Date</h3>
@@ -397,7 +397,7 @@ function BidManagementSystem() {
                                 </div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                ${bid.bidAmount.toFixed(2)}
+                                LKR. {bid.bidAmount.toFixed(2)}
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                 {formatDate(bid.bidDate)}

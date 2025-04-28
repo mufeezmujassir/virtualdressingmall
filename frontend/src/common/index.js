@@ -104,6 +104,26 @@ const SummaryApi = {
         url : `${backendDomin}/api/delete-cart-product`,
         method : 'post'
     },
+    clearCartAfterPayment: {
+        url: `${backendDomin}/api/clear-cart-after-payment`,
+        method: 'post'
+    },
+    createOrdersAfterPayment: {
+        url: `${backendDomin}/api/create-orders-after-payment`,
+        method: 'post'
+    },
+    createTestOrder: {
+        url: `${backendDomin}/api/create-test-order`,
+        method: 'post'
+    },
+    createMinimalOrder: {
+        url: `${backendDomin}/api/create-minimal-order`,
+        method: 'post'
+    },
+    refreshCartCount: {
+        url: `${backendDomin}/api/refresh-cart-count`,
+        method: 'get'
+    },
     fetchCategoryWiseProduct : {
         url : `${backendDomin}/api/category-product`,
         method : 'post'

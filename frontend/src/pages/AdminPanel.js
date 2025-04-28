@@ -1,9 +1,11 @@
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { FaUserCircle, FaBars, FaTimes, FaChevronRight } from "react-icons/fa";
+import { FaUserCircle, FaBars, FaTimes, FaChevronRight,FaChartPie } from "react-icons/fa";
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import role from '../common/role';
 import { Outlet } from 'react-router-dom';
+import { icon } from 'leaflet';
+
 
 const AdminPanel = () => {
     const user = useSelector(state => state?.user?.user);
@@ -34,7 +36,8 @@ const AdminPanel = () => {
         { name: 'Comment Management', path: 'comment-management', icon: '💬' }
         ,{ name: 'Bid Income', path: 'Bid-income-admin', icon: '💰' },
         { name: 'Reservation Income', path: 'reservation-income-admin', icon: '💵' }
-        
+        ,{name:"Revenue Summary",path:'revenue',icon:'💵'},
+        { name:"Seller Analaytics",path:'analytic-part',icon:<FaChartPie />}
     ];
 
     return (

@@ -98,8 +98,8 @@ const ReservationIncomeReport = () => {
     switch (status) {
       case 'Confirmed':
         return { text: 'Confirmed', color: 'bg-green-100 text-green-800' };
-      case 'Not Visited':
-        return { text: 'Not Visited', color: 'bg-yellow-100 text-yellow-800' };
+      case 'Not visited':
+        return { text: 'Not visited', color: 'bg-yellow-100 text-yellow-800' };
       case 'Rejected':
         return { text: 'Rejected', color: 'bg-red-100 text-red-800' };
       default:
@@ -173,7 +173,7 @@ const ReservationIncomeReport = () => {
               </div>
               <div className="bg-gray-50 rounded-md p-4">
                 <span className="text-gray-500">Confirmed Reservations Income</span>
-                <p className="text-2xl font-bold">${(reportData.confirmedIncome || 0).toFixed(2)}</p>
+                <p className="text-2xl font-bold">LKR. {(reportData.confirmedIncome || 0).toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -202,12 +202,12 @@ const ReservationIncomeReport = () => {
                         <td className="px-4 py-2 border">{formatDate(item.reservationDate)}</td>
                         <td className="px-4 py-2 border">{item.size}</td>
                         <td className="px-4 py-2 border">{item.quantity}</td>
-                        <td className="px-4 py-2 border">${(item.price || 0).toFixed(2)}</td>
-                        <td className="px-4 py-2 border">${(item.revenue || 0).toFixed(2)}</td>
+                        <td className="px-4 py-2 border">LKR. {(item.price || 0).toFixed(2)}</td>
+                        <td className="px-4 py-2 border">LKR. {(item.revenue || 0).toFixed(2)}</td>
                         <td className="px-4 py-2 border">{item.customer}</td>
                         <td className="px-4 py-2 border">
                           {(() => {
-                            const status = getStatusDisplay(item.status);
+                            const status = getStatusDisplay(item.validationStatus);
                             return (
                               <span className={`px-2 py-1 rounded-full text-xs ${status.color}`}>
                                 {status.text}
