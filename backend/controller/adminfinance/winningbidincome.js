@@ -35,58 +35,165 @@ const getBiddingSalesIncome = async (req, res) => {
 
     // Generate response based on requested format
     if (format === 'pdf') {
-      const doc = new PDFDocument({ margin: 50 });
+      // Create PDF document with enhanced styling
+      const doc = new PDFDocument({ 
+        margin: 50,
+        size: 'A4'
+      });
 
+      // Set response headers
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename="bidding_sales_income_report.pdf"');
-
+      
+      // Pipe the PDF to the response
       doc.pipe(res);
 
-      // Title
-      doc.fontSize(20).text('Bidding Sales Income Report', { align: 'center' });
-      doc.moveDown();
-      doc.fontSize(14).text(`Date Generated: ${new Date().toLocaleDateString()}`, { align: 'left' });
-      doc.fontSize(14).text(`Total Income: $${totalIncome.toFixed(2)}`, { align: 'left' });
-      doc.moveDown(2);
+      // Define colors
+      const colors = {
+        primaryBlue: '#0047AB',
+        lightBlue: '#E6F3FF',
+        darkGray: '#333333',
+        lightGray: '#F0F0F0'
+      };
 
-      // Table header
-      const tableTop = doc.y;
-      doc.font('Helvetica-Bold');
-      doc.fontSize(10);
-      doc.text('Product', 50, tableTop);
-      doc.text('Brand', 150, tableTop);
-      doc.text('Bid Amount', 250, tableTop);
-      doc.text('Close Date', 330, tableTop);
-      doc.text('Buyer', 420, tableTop);
-
-      doc.moveTo(50, tableTop + 15)
-        .lineTo(550, tableTop + 15)
-        .stroke();
-
+      // Add header with title
+      doc.rect(50, 50, doc.page.width - 100, 60)
+         .fill(colors.lightBlue);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(22)
+         .fillColor(colors.primaryBlue)
+         .text('Bidding Sales Income Report', 70, 65);
+      
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor(colors.darkGray)
+         .text(`Generated on: ${new Date().toLocaleDateString()}`, 70, 95);
+      
+      // Add summary section
+      const summaryY = 150;
+      doc.font('Helvetica-Bold')
+         .fontSize(16)
+         .fillColor(colors.primaryBlue)
+         .text('Summary', 50, summaryY);
+      
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor(colors.darkGray)
+         .text(`Total Sales: ${salesData.length}`, 50, summaryY + 30);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor(colors.primaryBlue)
+         .text(`Total Revenue: $${totalIncome.toFixed(2)}`, 50, summaryY + 50);
+      
+      doc.font('Helvetica')
+         .fontSize(12)
+         .fillColor(colors.darkGray);
+         
+      if (salesData.length > 0) {
+        const avgSale = totalIncome / salesData.length;
+        doc.text(`Average Sale: $${avgSale.toFixed(2)}`, 50, summaryY + 70);
+      }
+      
+      // Add table header
+      const tableTop = summaryY + 120;
+      doc.rect(50, tableTop, doc.page.width - 100, 30)
+         .fill(colors.primaryBlue);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(12)
+         .fillColor('white');
+      
+      doc.text('Product', 60, tableTop + 10);
+      doc.text('Brand', 180, tableTop + 10);
+      doc.text('Amount', 280, tableTop + 10);
+      doc.text('Date', 360, tableTop + 10);
+      doc.text('Buyer', 440, tableTop + 10);
+      
       // Table rows
-      let rowTop = tableTop + 25;
-      doc.font('Helvetica');
-
-      const checkPageBreak = (y) => {
-        if (y > 700) {
+      let rowTop = tableTop + 40;
+      let isEvenRow = false;
+      
+      doc.font('Helvetica')
+         .fontSize(10)
+         .fillColor(colors.darkGray);
+      
+      // Function to check and handle page breaks
+      const checkPageBreak = (y, rowHeight = 30) => {
+        if (y + rowHeight > doc.page.height - 100) {
           doc.addPage();
-          return 50;
+          
+          // Add header on new page
+          doc.font('Helvetica-Bold')
+             .fontSize(14)
+             .fillColor(colors.primaryBlue)
+             .text('Bidding Sales Income Report (Continued)', 50, 50);
+          
+          // Add table header on new page
+          doc.rect(50, 80, doc.page.width - 100, 30)
+             .fill(colors.primaryBlue);
+          
+          doc.font('Helvetica-Bold')
+             .fontSize(12)
+             .fillColor('white');
+          
+          doc.text('Product', 60, 90);
+          doc.text('Brand', 180, 90);
+          doc.text('Amount', 280, 90);
+          doc.text('Date', 360, 90);
+          doc.text('Buyer', 440, 90);
+          
+          return 120; // Return the new y position
         }
         return y;
       };
-
+      
+      // Add table rows
       salesData.forEach(item => {
         rowTop = checkPageBreak(rowTop);
-
-        doc.fontSize(10).text(item.productName.substring(0, 20), 50, rowTop);
-        doc.text(item.brandName.substring(0, 20), 150, rowTop);
-        doc.text(`$${item.bidAmount.toFixed(2)}`, 250, rowTop);
-        doc.text(new Date(item.closeDate).toLocaleDateString(), 330, rowTop);
-        doc.text(item.buyerName.substring(0, 20), 420, rowTop);
-
-        rowTop += 20;
+        
+        // Add zebra striping
+        if (isEvenRow) {
+          doc.rect(50, rowTop - 5, doc.page.width - 100, 30)
+             .fill(colors.lightGray);
+        }
+        isEvenRow = !isEvenRow;
+        
+        // Add row data
+        doc.fillColor(colors.darkGray);
+        
+        // Function to truncate text
+        const truncate = (text, maxLength) => {
+          return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        };
+        
+        doc.text(truncate(item.productName, 20), 60, rowTop);
+        doc.text(truncate(item.brandName, 15), 180, rowTop);
+        doc.text(`$${item.bidAmount.toFixed(2)}`, 280, rowTop);
+        doc.text(new Date(item.closeDate).toLocaleDateString(), 360, rowTop);
+        doc.text(truncate(item.buyerName, 15), 440, rowTop);
+        
+        rowTop += 30;
       });
-
+      
+      // Add footer with total
+      const footerY = checkPageBreak(rowTop + 20);
+      
+      doc.rect(doc.page.width - 200, footerY, 150, 40)
+         .fill(colors.primaryBlue);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor('white')
+         .text('TOTAL:', doc.page.width - 190, footerY + 10);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor('white')
+         .text(`$${totalIncome.toFixed(2)}`, doc.page.width - 100, footerY + 10);
+      
+      // Finalize the PDF
       doc.end();
     } else if (format === 'excel') {
       const workbook = new ExcelJS.Workbook();

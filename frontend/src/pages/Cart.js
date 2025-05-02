@@ -204,7 +204,6 @@ const Cart = () => {
                 </div>
                 <div>
                     <h2 className="text-xl font-semibold">Welcome, {user?.name || 'Guest'}</h2>
-                    <p className="text-gray-600">User ID: {user?._id || 'Not logged in'}</p>
                 </div>
             </div>
 
