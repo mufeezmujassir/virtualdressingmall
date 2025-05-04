@@ -15,9 +15,53 @@ import {
     MdCheckCircle,
     MdSecurity,
     MdAdd,
-    MdRemove
+    MdRemove,
+    MdClose,
+    MdWarning
 } from "react-icons/md";
 import { selectUser, selectToken } from '../store/userSlice'
+
+// Confirmation Modal Component
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+    if (!isOpen) return null;
+    
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-fadeIn">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium flex items-center">
+                        <MdWarning className="text-yellow-500 mr-2 text-xl" />
+                        {title}
+                    </h3>
+                    <button 
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-gray-600"
+                    >
+                        <MdClose className="text-xl" />
+                    </button>
+                </div>
+                <p className="text-gray-600 mb-6">{message}</p>
+                <div className="flex justify-end space-x-3">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => {
+                            onConfirm();
+                            onClose();
+                        }}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                    >
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const Cart = () => {
     const [data, setData] = useState([])
@@ -27,6 +71,30 @@ const Cart = () => {
     const user = useSelector(selectUser)
     const token = useSelector(selectToken)
     const loadingCart = new Array(4).fill(null)
+    
+    // Modal state
+    const [modal, setModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => {}
+    })
+
+    const openModal = (title, message, onConfirm) => {
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            onConfirm
+        })
+    }
+
+    const closeModal = () => {
+        setModal({
+            ...modal,
+            isOpen: false
+        })
+    }
 
     const fetchData = async() => {
         if (!user?._id || !token) {
@@ -66,12 +134,17 @@ const Cart = () => {
         loadCart()
     }, [user, token])
 
-    const updateQuantity = async(id, qty, isIncrease) => {
+    const updateQuantity = async(id, qty, isIncrease, productName) => {
         if (!isIncrease && qty < 2) return;
         
         // Calculate new quantity
         const newQuantity = isIncrease ? qty + 1 : qty - 1;
         
+        // No confirmation needed for quantity changes, proceed directly
+        await processQuantityUpdate(id, newQuantity, productName);
+    };
+    
+    const processQuantityUpdate = async(id, newQuantity, productName) => {
         try {
             // Show loading toast
             const toastId = toast.loading(`Updating quantity...`);
@@ -97,8 +170,8 @@ const Cart = () => {
                 // Refresh cart data
                 await fetchData();
                 context.fetchUserAddToCart();
-                // Optional success message
-                toast.success('Quantity updated');
+                // Success message with product name
+                toast.success(`Quantity updated to ${newQuantity} for "${productName}"`);
             } else {
                 console.error("Update API error:", response.data);
                 toast.error(response.data.message || 'Failed to update quantity');
@@ -108,34 +181,42 @@ const Cart = () => {
             toast.error(error.response?.data?.message || 'Failed to update quantity');
         }
     };
-
-    const deleteCartProduct = async(id) => {
-        try {
-            // Show loading toast
-            const toastId = toast.loading("Removing item...");
-            
-            // Make simple delete request with proper auth
-            const response = await axios.post(SummaryApi.deleteCartProduct.url, 
-                { _id: id },
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            
-            toast.dismiss(toastId);
-            
-            if (response.data.success) {
-                // Refresh cart data
-                await fetchData();
-                context.fetchUserAddToCart();
-                toast.success('Item removed from cart');
-            } else {
-                console.error("Delete API error:", response.data);
-                toast.error(response.data.message || 'Failed to remove item');
+    
+    //delete items from cart
+    const deleteCartProduct = async(id, productName) => {
+        // Show confirmation dialog
+        openModal(
+            "Remove Item",
+            `Are you sure you want to remove "${productName}" from your cart?`,
+            async () => {
+                try {
+                    // Show loading toast
+                    const toastId = toast.loading("Removing item...");
+                    
+                    // Make simple delete request with proper auth
+                    const response = await axios.post(SummaryApi.deleteCartProduct.url, 
+                        { _id: id },
+                        { headers: { 'Authorization': `Bearer ${token}` } }
+                    );
+                    
+                    toast.dismiss(toastId);
+                    
+                    if (response.data.success) {
+                        // Refresh cart data
+                        await fetchData();
+                        context.fetchUserAddToCart();
+                        toast.success(`"${productName}" has been removed from your cart`);
+                    } else {
+                        console.error("Delete API error:", response.data);
+                        toast.error(response.data.message || 'Failed to remove item');
+                    }
+                } catch (error) {
+                    console.error('Error removing item from cart:', error);
+                    const errorMsg = error.response?.data?.message || 'Failed to remove item';
+                    toast.error(errorMsg);
+                }
             }
-        } catch (error) {
-            console.error('Error removing item from cart:', error);
-            const errorMsg = error.response?.data?.message || 'Failed to remove item';
-            toast.error(errorMsg);
-        }
+        );
     };
 
     // Add proper null checks to avoid "Cannot read properties of undefined" errors
@@ -164,6 +245,15 @@ const Cart = () => {
 
     return (
         <div className='container mx-auto p-4 bg-gray-50 min-h-screen'>
+            {/* Confirmation Modal */}
+            <ConfirmationModal 
+                isOpen={modal.isOpen}
+                onClose={closeModal}
+                onConfirm={modal.onConfirm}
+                title={modal.title}
+                message={modal.message}
+            />
+            
             {/* Checkout Progress */}
             <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
                 <div className="flex items-center justify-center">
@@ -248,7 +338,7 @@ const Cart = () => {
                                             </div>
                                             <div className="flex-1 relative">
                                                 <button
-                                                    onClick={() => deleteCartProduct(product?._id)}
+                                                    onClick={() => deleteCartProduct(product?._id, product?.productId?.productName)}
                                                     className="absolute right-0 top-0 text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors"
                                                 >
                                                     <MdDelete className="text-xl" />
@@ -264,7 +354,7 @@ const Cart = () => {
                                                     <div className="flex items-center gap-3">
                                                         <button 
                                                             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-100 flex items-center justify-center text-red-600 border border-gray-200 transition-colors"
-                                                            onClick={() => updateQuantity(product?._id, product?.quantity, false)}
+                                                            onClick={() => updateQuantity(product?._id, product?.quantity, false, product?.productId?.productName)}
                                                             disabled={product?.quantity < 2}
                                                         >
                                                             <MdRemove />
@@ -272,7 +362,7 @@ const Cart = () => {
                                                         <span className="font-medium text-lg w-6 text-center">{product?.quantity}</span>
                                                         <button 
                                                             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-100 flex items-center justify-center text-red-600 border border-gray-200 transition-colors"
-                                                            onClick={() => updateQuantity(product?._id, product?.quantity, true)}
+                                                            onClick={() => updateQuantity(product?._id, product?.quantity, true, product?.productId?.productName)}
                                                         >
                                                             <MdAdd />
                                                         </button>
