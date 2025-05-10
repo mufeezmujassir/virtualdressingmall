@@ -34,33 +34,8 @@ const getReservations = async (req, res) => {
 
     // If export is requested
     if (format === 'pdf') {
-      const doc = new PDFDocument();
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename="reservations_report.pdf"');
-      doc.pipe(res);
-
-      doc.fontSize(20).text('Reservation Report', { align: 'center' });
-      doc.moveDown();
-      if (startDate && endDate) {
-        doc.fontSize(14).text(`Date Range: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`, { align: 'center' });
-        doc.moveDown(2);
-      }
-
-      doc.fontSize(12);
-      reservations.forEach((reservation, index) => {
-        doc.text(`Reservation #${index + 1}`, { underline: true });
-        doc.text(`Product: ${reservation.productID?.productName || 'N/A'}`);
-        doc.text(`Brand: ${reservation.productID?.brandName || 'N/A'}`);
-        doc.text(`User: ${reservation.userID?.name || 'N/A'}`);
-        doc.text(`Email: ${reservation.userID?.email || 'N/A'}`);
-        doc.text(`Size: ${reservation.size}`);
-        doc.text(`Quantity: ${reservation.Quantity}`);
-        doc.text(`Status: ${reservation.ValidateReservation || 'Pending'}`);
-        doc.text(`Reservation Date: ${reservation.ReservationDate}`);
-        doc.moveDown();
-      });
-
-      doc.end();
+      // Create enhanced PDF document with tabular format
+      await generateReservationsPDFReport(res, reservations, { startDate, endDate });
       return;
     }
 
@@ -108,6 +83,205 @@ const getReservations = async (req, res) => {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
+};
+
+/**
+ * Generate an enhanced PDF report with tabular format for reservations
+ * @param {Object} res - Express response object
+ * @param {Array} reservations - Array of reservation objects
+ * @param {Object} filters - Filter options like date range
+ */
+const generateReservationsPDFReport = async (res, reservations, filters) => {
+  // Create a new PDF document
+  const doc = new PDFDocument({
+    size: 'A4',
+    margin: 50,
+    autoFirstPage: true
+  });
+
+  // Pipe the PDF to the response
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename="reservations_report.pdf"');
+  doc.pipe(res);
+
+  // Define colors for styling
+  const colors = {
+    primary: '#0047AB', // Strong Blue
+    secondary: '#333333', // Dark Gray
+    lightGray: '#F0F0F0', // Light Gray for alternating rows
+    headerBg: '#0047AB', // Header background
+    headerText: '#FFFFFF', // Header text
+    borderColor: '#CCCCCC' // Border color
+  };
+
+  // Add title and header
+  doc.font('Helvetica-Bold')
+     .fontSize(22)
+     .fillColor(colors.primary)
+     .text('Reservation Report', { align: 'center' });
+  
+  doc.moveDown();
+
+  // Add date range if specified
+  if (filters.startDate && filters.endDate) {
+    doc.font('Helvetica')
+       .fontSize(12)
+       .fillColor(colors.secondary)
+       .text(`Date Range: ${new Date(filters.startDate).toLocaleDateString()} - ${new Date(filters.endDate).toLocaleDateString()}`, 
+        { align: 'center' });
+    doc.moveDown();
+  }
+
+  // Add summary count
+  doc.font('Helvetica-Bold')
+     .fontSize(14)
+     .fillColor(colors.primary)
+     .text(`Total Reservations: ${reservations.length}`, { align: 'left' });
+  
+  doc.moveDown(2);
+
+  // Prepare for table - define column widths
+  const pageWidth = doc.page.width - 100;
+  const columns = {
+    id: { x: 50, width: pageWidth * 0.15, name: 'ID' },
+    product: { x: 50 + pageWidth * 0.15, width: pageWidth * 0.20, name: 'Product' },
+    user: { x: 50 + pageWidth * 0.35, width: pageWidth * 0.15, name: 'User' },
+    size: { x: 50 + pageWidth * 0.50, width: pageWidth * 0.10, name: 'Size' },
+    qty: { x: 50 + pageWidth * 0.60, width: pageWidth * 0.10, name: 'Qty' },
+    status: { x: 50 + pageWidth * 0.70, width: pageWidth * 0.15, name: 'Status' },
+    date: { x: 50 + pageWidth * 0.85, width: pageWidth * 0.15, name: 'Date' }
+  };
+
+  // Draw table header
+  const headerY = doc.y;
+  
+  // Header background
+  doc.rect(50, headerY, pageWidth, 30)
+     .fill(colors.headerBg);
+  
+  // Header text
+  doc.font('Helvetica-Bold')
+     .fontSize(10)
+     .fillColor(colors.headerText);
+  
+  Object.values(columns).forEach(column => {
+    doc.text(column.name, column.x + 3, headerY + 10, {
+      width: column.width - 6,
+      align: column.name === 'Qty' ? 'right' : 'left'
+    });
+  });
+
+  // Helper function for text truncation
+  const truncate = (text, maxLength) => {
+    if (!text) return 'N/A';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
+  // Helper function for handling page breaks
+  const checkPageBreak = (y, rowHeight = 25) => {
+    if (y + rowHeight > doc.page.height - 50) {
+      doc.addPage();
+      
+      // Add header on new page
+      doc.font('Helvetica-Bold')
+         .fontSize(14)
+         .fillColor(colors.primary)
+         .text('Reservation Report (Continued)', 50, 50);
+      
+      // Redraw table header
+      const newHeaderY = 80;
+      doc.rect(50, newHeaderY, pageWidth, 30)
+         .fill(colors.headerBg);
+      
+      doc.font('Helvetica-Bold')
+         .fontSize(10)
+         .fillColor(colors.headerText);
+      
+      Object.values(columns).forEach(column => {
+        doc.text(column.name, column.x + 3, newHeaderY + 10, {
+          width: column.width - 6,
+          align: column.name === 'Qty' ? 'right' : 'left'
+        });
+      });
+      
+      return newHeaderY + 30;
+    }
+    return y;
+  };
+
+  // Draw table rows
+  let rowY = headerY + 30;
+  let isEvenRow = false;
+
+  for (let i = 0; i < reservations.length; i++) {
+    const reservation = reservations[i];
+    rowY = checkPageBreak(rowY);
+    
+    // Draw row background (zebra striping)
+    if (isEvenRow) {
+      doc.rect(50, rowY, pageWidth, 25)
+         .fill(colors.lightGray);
+    }
+    isEvenRow = !isEvenRow;
+    
+    // Draw row text
+    doc.font('Helvetica')
+       .fontSize(9)
+       .fillColor(colors.secondary);
+    
+    // ID column
+    doc.text(truncate(reservation.ReservationID || `#${i+1}`, 10), 
+             columns.id.x + 3, rowY + 8, { width: columns.id.width - 6 });
+    
+    // Product column
+    doc.text(truncate(reservation.productID?.productName || 'N/A', 20),
+             columns.product.x + 3, rowY + 8, { width: columns.product.width - 6 });
+    
+    // User column
+    doc.text(truncate(reservation.userID?.name || 'N/A', 15),
+             columns.user.x + 3, rowY + 8, { width: columns.user.width - 6 });
+    
+    // Size column
+    doc.text(reservation.size || 'N/A',
+             columns.size.x + 3, rowY + 8, { width: columns.size.width - 6 });
+    
+    // Quantity column
+    doc.text(reservation.Quantity?.toString() || '0',
+             columns.qty.x + 3, rowY + 8, { width: columns.qty.width - 6, align: 'right' });
+    
+    // Status column
+    doc.text(reservation.ValidateReservation || 'Pending',
+             columns.status.x + 3, rowY + 8, { width: columns.status.width - 6 });
+    
+    // Date column
+    const reservationDate = reservation.ReservationDate ? 
+      new Date(reservation.ReservationDate).toLocaleDateString() : 'N/A';
+    doc.text(reservationDate,
+             columns.date.x + 3, rowY + 8, { width: columns.date.width - 6 });
+    
+    // Draw horizontal line after each row
+    doc.strokeColor(colors.borderColor)
+       .lineWidth(0.5)
+       .moveTo(50, rowY + 25)
+       .lineTo(50 + pageWidth, rowY + 25)
+       .stroke();
+    
+    rowY += 25;
+  }
+
+  // Add footer
+  const footerY = doc.page.height - 50;
+  doc.font('Helvetica')
+     .fontSize(8)
+     .fillColor('#666666')
+     .text('This report contains reservation data from the Virtual Dressing Mall system.',
+          50, footerY, { align: 'center', width: pageWidth });
+  
+  doc.text(`Generated on: ${new Date().toLocaleString()}`, 
+          50, footerY + 15, { align: 'center', width: pageWidth });
+
+  // Finalize the PDF
+  doc.end();
 };
 
 const validateReservation = async (req, res) => {

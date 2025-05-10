@@ -258,7 +258,6 @@ const getBidIncomeStats = async (req, res) => {
   }
 };
 
-
 /**
  * Export bid income data to PDF
  * @param {Object} res - Express response object
@@ -270,7 +269,7 @@ const getBidIncomeStats = async (req, res) => {
 const exportToPDF = (res, data, summary, startDate, endDate) => {
   try {
     // Create a new PDF document
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ margin: 50, size: 'A4', layout: 'landscape' });
     
     // Set response headers for PDF download
     res.setHeader('Content-Type', 'application/pdf');
@@ -309,74 +308,141 @@ const exportToPDF = (res, data, summary, startDate, endDate) => {
       doc.fontSize(16).text('Auction Details', { underline: true });
       doc.moveDown();
       
-      // Define table column widths
-      const tableTop = doc.y;
-      const productWidth = 170;
-      const dateWidth = 90;
-      const priceWidth = 80;
-      const profitWidth = 80;
-      const margin = 15;
+      // Define column layout with improved widths for better text display
+      const leftMargin = doc.x;
+      const pageWidth = doc.page.width - 100; // Total usable width (accounting for margins)
+      
+      // Define column widths as proportions of the page
+      const colWidths = [
+        Math.floor(pageWidth * 0.22), // Product (wider for product names)
+        Math.floor(pageWidth * 0.12), // Close Date
+        Math.floor(pageWidth * 0.16), // Buyer (wider for names)
+        Math.floor(pageWidth * 0.12), // Start Price
+        Math.floor(pageWidth * 0.12), // Winning Bid
+        Math.floor(pageWidth * 0.12), // Net Profit
+        Math.floor(pageWidth * 0.10)  // Profit %
+      ];
+      
+      const colMargin = 10; // Increased margin between columns
+      
+      // Calculate absolute positions for each column
+      const colPositions = [];
+      let currentPos = leftMargin;
+      colWidths.forEach(width => {
+        colPositions.push(currentPos);
+        currentPos += width + colMargin;
+      });
       
       // Draw table headers
-      doc.fontSize(10).text('Product', doc.x, doc.y, { width: productWidth, align: 'left' });
-      doc.text('Close Date', doc.x + productWidth + margin, tableTop, { width: dateWidth, align: 'left' });
-      doc.text('Winning Bid', doc.x + productWidth + dateWidth + margin * 2, tableTop, { width: priceWidth, align: 'right' });
-      doc.text('Net Profit', doc.x + productWidth + dateWidth + priceWidth + margin * 3, tableTop, { width: profitWidth, align: 'right' });
+      const tableTop = doc.y;
+      const headers = ['Product', 'Close Date', 'Buyer', 'Start Price', 'Winning Bid', 'Net Profit', 'Profit %'];
       
-      doc.moveDown(0.5);
-      doc.lineWidth(1);
-      doc.opacity(0.2);
-      doc.lineCap('butt')
-        .moveTo(doc.x, doc.y)
-        .lineTo(doc.x + productWidth + dateWidth + priceWidth + profitWidth + margin * 4, doc.y)
-        .stroke();
-      doc.opacity(1);
-      doc.moveDown(0.5);
+      // Add background for header row
+      doc.rect(leftMargin - 5, tableTop - 5, pageWidth + 10, 20).fill('#f0f0f0');
+      
+      doc.fillColor('#000000'); // Reset to black text
+      doc.fontSize(10);
+      headers.forEach((header, i) => {
+        const align = i >= 3 ? 'right' : 'left'; // Right-align numeric columns
+        doc.text(header, colPositions[i], tableTop, { 
+          width: colWidths[i], 
+          align: align,
+          underline: true
+        });
+      });
+      
+      doc.moveDown(1);
       
       // Draw table rows
-      let currentPosition = doc.y;
+      let rowTop = doc.y + 5;
+      let alternate = false;
+      
       data.forEach((item, i) => {
         // Check if we need a new page
-        if (currentPosition > doc.page.height - 100) {
-          doc.addPage();
-          currentPosition = doc.y;
+        if (rowTop > doc.page.height - 60) {
+          doc.addPage({ margin: 50, size: 'A4', layout: 'landscape' });
+          rowTop = doc.y + 10;
+          
+          // Add headers to new page
+          const newPageTableTop = doc.y;
+          
+          // Add header background
+          doc.rect(leftMargin - 5, newPageTableTop - 5, pageWidth + 10, 20).fill('#f0f0f0');
+          
+          doc.fillColor('#000000');
+          doc.fontSize(10);
+          headers.forEach((header, i) => {
+            const align = i >= 3 ? 'right' : 'left';
+            doc.text(header, colPositions[i], newPageTableTop, { 
+              width: colWidths[i], 
+              align: align,
+              underline: true
+            });
+          });
+          
+          doc.moveDown(1);
+          rowTop = doc.y + 5;
         }
         
+        // Light background for alternate rows
+        alternate = !alternate;
+        if (alternate) {
+          doc.rect(leftMargin - 5, rowTop - 2, pageWidth + 10, 16).fill('#f8f8f8');
+        }
+        
+        // Format data for display
         const formattedDate = new Date(item.closeDate).toLocaleDateString();
+        const formattedStartPrice = `$${(item.startPrice || 0).toFixed(2)}`;
         const formattedBid = `$${item.winningBidAmount.toFixed(2)}`;
         const formattedProfit = `$${item.netProfit.toFixed(2)}`;
+        const itemProfitMargin = item.winningBidAmount > 0 
+          ? ((item.netProfit / item.winningBidAmount) * 100).toFixed(1) 
+          : '0.0';
+        
+        // Create row data array
+        const rowData = [
+          item.productName || 'Unknown',
+          formattedDate,
+          item.buyerName || 'Unknown',
+          formattedStartPrice,
+          formattedBid,
+          formattedProfit,
+          `${itemProfitMargin}%`
+        ];
         
         doc.fontSize(9);
+        doc.fillColor('#000000'); // Reset to default color
         
-        // Adjust text color for profit (red if negative)
-        const defaultColor = doc._fillColor;
-        if (item.netProfit < 0) {
-          doc.fillColor('red');
-        }
+        // Print each cell value at the correct position
+        rowData.forEach((value, j) => {
+          // Apply red color for negative profit values
+          if ((j === 5 || j === 6) && item.netProfit < 0) {
+            doc.fillColor('red');
+          } else {
+            doc.fillColor('#000000');
+          }
+          
+          // Right align numeric columns (index 3 and higher)
+          const align = j >= 3 ? 'right' : 'left';
+          
+          // Add a bit of padding to the text within columns
+          doc.text(value, colPositions[j], rowTop, { 
+            width: colWidths[j], 
+            align: align,
+            ellipsis: true,
+            height: 12
+          });
+        });
         
-        doc.text(item.productName || 'Unknown', doc.x, currentPosition, { width: productWidth, align: 'left' });
-        doc.text(formattedDate, doc.x + productWidth + margin, currentPosition, { width: dateWidth, align: 'left' });
-        doc.text(formattedBid, doc.x + productWidth + dateWidth + margin * 2, currentPosition, { width: priceWidth, align: 'right' });
-        doc.text(formattedProfit, doc.x + productWidth + dateWidth + priceWidth + margin * 3, currentPosition, { width: profitWidth, align: 'right' });
-        
-        // Reset color if needed
-        if (item.netProfit < 0) {
-          doc.fillColor(defaultColor);
-        }
-        
-        // Add a light divider line between rows
-        currentPosition = doc.y + 5;
-        doc.moveDown(0.5);
-        doc.opacity(0.1);
-        doc.lineCap('butt')
-          .moveTo(doc.x, doc.y)
-          .lineTo(doc.x + productWidth + dateWidth + priceWidth + profitWidth + margin * 4, doc.y)
-          .stroke();
-        doc.opacity(1);
-        doc.moveDown(0.2);
-        
-        currentPosition = doc.y;
+        // Advance to next row position
+        doc.moveDown(0.8);
+        rowTop = doc.y + 3;
       });
+      
+      // Add bottom border to table
+      doc.lineWidth(0.5);
+      doc.strokeColor('#cccccc');
+      doc.moveTo(leftMargin - 5, rowTop).lineTo(leftMargin + pageWidth + 5, rowTop).stroke();
     } else {
       doc.fontSize(12).text('No auction data available for the selected period', { italic: true });
     }
@@ -385,7 +451,7 @@ const exportToPDF = (res, data, summary, startDate, endDate) => {
     doc.fontSize(8).text(
       `Generated on ${new Date().toLocaleString()}`, 
       50, 
-      doc.page.height - 50, 
+      doc.page.height - 30, 
       { align: 'center' }
     );
     
@@ -403,7 +469,6 @@ const exportToPDF = (res, data, summary, startDate, endDate) => {
     return false;
   }
 };
-
 /**
  * Export bid income data to Excel
  * @param {Object} res - Express response object
